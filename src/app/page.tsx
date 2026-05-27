@@ -145,7 +145,7 @@ export default function Home() {
 
           <div className="mt-6 flex flex-col items-center gap-3">
             <ApplyChecklistDialog />
-            <p className="text-xs text-slate-500">Takes around 5 minutes to complete</p>
+            <p className="text-xs text-slate-500">Takes around 8 minutes to complete</p>
           </div>
 
           <div className="mt-12 space-y-4 border-t border-slate-200 pt-10">
