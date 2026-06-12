@@ -1,0 +1,81 @@
+generator client {
+  provider = "prisma-client"
+  output   = "../src/generated/prisma"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+enum CreatorStatus {
+  PENDING
+  APPROVED
+  REJECTED
+}
+
+model Creator {
+  id String @id @default(uuid())
+
+  // Step 1 - Photos
+  frontFacePath String
+  sideFacePath  String
+  lifestylePath String
+
+  // Step 2 - About you
+  firstName      String
+  lastName       String
+  email          String
+  phone          String
+  city           String
+  country        String
+  dateOfBirth    DateTime
+  genderIdentity String?
+  languages      String?
+
+  // Step 3 - Social platforms
+  socialPlatforms Json
+  website         String?
+
+  // Step 4 - Content & niche
+  primaryNiche        String
+  primaryNicheOther   String?
+  secondaryNiches     String[]
+  contentStyles       String[]
+  contentStylesOther  String?
+  contentFormats      String[]
+  contentFormatsOther String?
+  contentLinks        String[]
+
+  // Step 5 - Audience
+  audienceAgeGroup      String
+  audienceGenderSplit   String
+  audienceTopCountries  String
+  audienceTopCities     String?
+  audienceInterests     String[]
+  audienceInterestsOther String?
+
+  // Step 6 - Experience & availability
+  previousBrands     String[]
+  campaignTypes      String[]
+  availability       String[]
+  brandsExcluded     String?
+  brandExclusivity   String?
+  expectedHourlyRate Float?
+  hasAgent           Boolean?
+  agentName          String?
+  agentContact       String?
+
+  // Step 7 - Final details
+  bio            String
+  portfolioLink  String?
+  vatStatus      String
+  invoicingAs    String
+  additionalInfo String?
+  termsAccepted  Boolean @default(false)
+
+  status    CreatorStatus @default(PENDING)
+  createdAt DateTime      @default(now())
+  updatedAt DateTime      @updatedAt
+
+  @@map("creators")
+}
