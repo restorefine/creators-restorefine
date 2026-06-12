@@ -75,6 +75,10 @@ export const DEFAULT_EXPORT_FIELDS = [
 ];
 
 function csvEscape(value: string): string {
+  // Prefix values that spreadsheet apps could interpret as formulas.
+  if (/^[=+\-@\t\r]/.test(value)) {
+    value = `'${value}`;
+  }
   if (/[",\r\n]/.test(value)) {
     return `"${value.replace(/"/g, '""')}"`;
   }
