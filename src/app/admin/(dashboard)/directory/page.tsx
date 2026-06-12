@@ -3,6 +3,7 @@ import { getSignedPhotoUrl } from "@/lib/supabase/admin";
 import { CreatorStatus } from "@/generated/prisma/client";
 import { CreatorTable } from "../creator-table";
 import { Pagination } from "../pagination";
+import { ExportButton } from "../export-button";
 
 export const dynamic = "force-dynamic";
 
@@ -49,7 +50,10 @@ export default async function CreatorDirectoryPage({
     <div>
       <div className="mb-6 flex items-center justify-between">
         <h1 className="text-xl font-bold text-slate-900">Creator directory</h1>
-        <span className="text-sm text-slate-500">{total} total</span>
+        <div className="flex items-center gap-3">
+          <span className="text-sm text-slate-500">{total} total</span>
+          <ExportButton scope="approved" filename="creator-directory" />
+        </div>
       </div>
 
       {rows.length === 0 ? (

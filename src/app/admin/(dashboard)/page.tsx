@@ -2,6 +2,7 @@ import { prisma } from "@/lib/prisma";
 import { getSignedPhotoUrl } from "@/lib/supabase/admin";
 import { CreatorTable } from "./creator-table";
 import { Pagination } from "./pagination";
+import { ExportButton } from "./export-button";
 
 export const dynamic = "force-dynamic";
 
@@ -45,7 +46,10 @@ export default async function AdminDashboardPage({
     <div>
       <div className="mb-6 flex items-center justify-between">
         <h1 className="text-xl font-bold text-slate-900">Creator applications</h1>
-        <span className="text-sm text-slate-500">{total} total</span>
+        <div className="flex items-center gap-3">
+          <span className="text-sm text-slate-500">{total} total</span>
+          <ExportButton scope="all" filename="creator-applications" />
+        </div>
       </div>
 
       {rows.length === 0 ? (

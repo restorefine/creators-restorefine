@@ -5,6 +5,7 @@ import { redirect } from "next/navigation";
 import { prisma } from "@/lib/prisma";
 import { createClient } from "@/lib/supabase/server";
 import { CreatorStatus } from "@/generated/prisma/client";
+import { buildCsv } from "./(dashboard)/export-fields";
 
 export async function signOut() {
   const supabase = await createClient();
@@ -20,4 +21,10 @@ export async function updateCreatorStatus(id: string, status: CreatorStatus) {
   revalidatePath("/admin");
   revalidatePath("/admin/directory");
   revalidatePath(`/admin/${id}`);
+}
+
+export async function exportCreatorsCsv(scope: "all" | "approved", fields: string[]) {
+  const where = scope === "approved" ? { status: CreatorStatus.APPROVED } : {};
+  const creators = await prisma.creator.findMany({ where, orderBy: { createdAt: "desc" } });
+  return buildCsv(creators, fields);
 }
