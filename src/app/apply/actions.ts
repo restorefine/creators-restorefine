@@ -60,7 +60,7 @@ export async function submitApplication(
   const phone = str(formData, "phone");
   const city = str(formData, "city");
   const country = str(formData, "country");
-  const dateOfBirthRaw = str(formData, "dateOfBirth");
+  const ageRange = str(formData, "ageRange");
   const genderIdentity = optionalStr(formData, "genderIdentity");
   const languages = optionalStr(formData, "languages");
 
@@ -78,16 +78,7 @@ export async function submitApplication(
   if (!city) fieldErrors.city = "City is required.";
   if (!country) fieldErrors.country = "Please select a country.";
 
-  let dateOfBirth: Date | null = null;
-  if (!dateOfBirthRaw) {
-    fieldErrors.dateOfBirth = "Date of birth is required.";
-  } else {
-    dateOfBirth = new Date(dateOfBirthRaw);
-    if (Number.isNaN(dateOfBirth.getTime())) {
-      fieldErrors.dateOfBirth = "Enter a valid date.";
-      dateOfBirth = null;
-    }
-  }
+  if (!ageRange) fieldErrors.ageRange = "Please select your age range.";
 
   // Step 3 - Social platforms
   const socialPlatforms: Record<string, { na: boolean; handle: string | null; followers: number | null }> = {};
@@ -227,7 +218,7 @@ export async function submitApplication(
         phone,
         city,
         country,
-        dateOfBirth: dateOfBirth as Date,
+        ageRange,
         genderIdentity,
         languages,
         socialPlatforms,

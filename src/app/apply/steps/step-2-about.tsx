@@ -1,6 +1,6 @@
 "use client";
 
-import { COUNTRIES, GENDER_IDENTITIES } from "../options";
+import { AGE_RANGES, COUNTRIES, GENDER_IDENTITIES } from "../options";
 import { FieldError, FieldLabel, SelectInput, TextInput } from "../form-ui";
 
 export function Step2About({ errors }: { errors: Record<string, string> }) {
@@ -42,9 +42,10 @@ export function Step2About({ errors }: { errors: Record<string, string> }) {
         <FieldError message={errors.country} />
       </div>
       <div>
-        <FieldLabel htmlFor="dateOfBirth">Date of birth</FieldLabel>
-        <TextInput id="dateOfBirth" name="dateOfBirth" type="date" />
-        <FieldError message={errors.dateOfBirth} />
+        <FieldLabel htmlFor="ageRange">Age range</FieldLabel>
+        <SelectInput id="ageRange" name="ageRange" options={AGE_RANGES} />
+        <p className="mt-1 text-xs text-slate-400">Must be 18 or over to join</p>
+        <FieldError message={errors.ageRange} />
       </div>
       <div>
         <FieldLabel htmlFor="genderIdentity" optional>

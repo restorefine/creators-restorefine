@@ -28,7 +28,7 @@ model Creator {
   phone          String
   city           String
   country        String
-  dateOfBirth    DateTime
+  ageRange       String
   genderIdentity String?
   languages      String?
 

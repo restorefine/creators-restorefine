@@ -57,7 +57,12 @@ export function Step7Final({ errors }: { errors: Record<string, string> }) {
           />
           <span>
             I confirm the information above is accurate and I agree to the{" "}
-            <Link href="/" className="font-medium text-brand hover:text-brand-dark">
+            <Link
+              href="/terms-and-condition"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="font-medium text-brand hover:text-brand-dark"
+            >
               Terms &amp; Conditions
             </Link>
             .

@@ -128,10 +128,7 @@ export default async function CreatorDetailPage({
             <Field label="Phone" value={creator.phone} />
             <Field label="City" value={creator.city} />
             <Field label="Country" value={creator.country} />
-            <Field
-              label="Date of birth"
-              value={creator.dateOfBirth.toLocaleDateString("en-GB", { dateStyle: "medium" })}
-            />
+            <Field label="Age range" value={creator.ageRange} />
             <Field label="Gender identity" value={creator.genderIdentity} />
             <Field label="Languages spoken" value={creator.languages} />
           </dl>

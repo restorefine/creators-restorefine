@@ -44,7 +44,7 @@ const FIELD_STEP: Record<string, number> = {
   phone: 1,
   city: 1,
   country: 1,
-  dateOfBirth: 1,
+  ageRange: 1,
   primaryNiche: 3,
   primaryNicheOther: 3,
   contentLink1: 3,
@@ -88,7 +88,7 @@ function validateStep(step: number, formData: FormData): Record<string, string> 
     if (!get("phone")) errors.phone = "Phone number is required.";
     if (!get("city")) errors.city = "City is required.";
     if (!get("country")) errors.country = "Please select a country.";
-    if (!get("dateOfBirth")) errors.dateOfBirth = "Date of birth is required.";
+    if (!get("ageRange")) errors.ageRange = "Please select your age range.";
   }
 
   if (step === 3) {
