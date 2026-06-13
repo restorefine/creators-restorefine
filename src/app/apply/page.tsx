@@ -1,6 +1,14 @@
+import { cookies } from "next/headers";
+import { redirect } from "next/navigation";
+import { APPLY_ACCESS_COOKIE } from "@/lib/apply-access";
 import { CreatorApplicationForm } from "./creator-application-form";
 
-export default function ApplyPage() {
+export default async function ApplyPage() {
+  const cookieStore = await cookies();
+  if (cookieStore.get(APPLY_ACCESS_COOKIE)?.value !== "1") {
+    redirect("/");
+  }
+
   return (
     <main className="flex flex-1 items-center justify-center bg-white px-4 py-12">
       <div className="w-full max-w-3xl">

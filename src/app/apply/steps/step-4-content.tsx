@@ -102,20 +102,12 @@ export function Step4Content({ errors }: { errors: Record<string, string> }) {
       </div>
 
       <div>
-        <FieldLabel>Content example links</FieldLabel>
+        <FieldLabel optional>Content example links</FieldLabel>
         <p className="mt-0.5 text-xs text-slate-500">
           Share links to content that best represents you.
         </p>
         <div className="mt-2 space-y-3">
-          <div>
-            <TextInput
-              id="contentLink1"
-              name="contentLink1"
-              type="url"
-              placeholder="https://"
-            />
-            <FieldError message={errors.contentLink1} />
-          </div>
+          <TextInput id="contentLink1" name="contentLink1" type="url" placeholder="https:// (optional)" />
           <TextInput id="contentLink2" name="contentLink2" type="url" placeholder="https:// (optional)" />
           <TextInput id="contentLink3" name="contentLink3" type="url" placeholder="https:// (optional)" />
         </div>

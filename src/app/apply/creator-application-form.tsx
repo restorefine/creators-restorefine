@@ -47,7 +47,6 @@ const FIELD_STEP: Record<string, number> = {
   ageRange: 1,
   primaryNiche: 3,
   primaryNicheOther: 3,
-  contentLink1: 3,
   audienceAgeGroup: 4,
   audienceGenderSplit: 4,
   audienceTopCountries: 4,
@@ -98,7 +97,6 @@ function validateStep(step: number, formData: FormData): Record<string, string> 
     } else if (primaryNiche === "Other" && !get("primaryNicheOther")) {
       errors.primaryNiche = "Please describe your niche.";
     }
-    if (!get("contentLink1")) errors.contentLink1 = "Please share at least one content link.";
   }
 
   if (step === 4) {

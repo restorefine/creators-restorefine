@@ -39,8 +39,8 @@ export function CreatorTable({ rows, dateLabel }: { rows: CreatorRow[]; dateLabe
             const fullName = `${creator.firstName} ${creator.lastName}`;
             return (
               <tr key={creator.id} className="cursor-pointer transition hover:bg-slate-50">
-                <td className="px-4 py-3">
-                  <Link href={`/admin/${creator.id}`} className="block">
+                <td className="p-0">
+                  <Link href={`/admin/${creator.id}`} className="block px-4 py-3">
                     {creator.thumbnailUrl ? (
                       // eslint-disable-next-line @next/next/no-img-element
                       <img
@@ -53,26 +53,28 @@ export function CreatorTable({ rows, dateLabel }: { rows: CreatorRow[]; dateLabe
                     )}
                   </Link>
                 </td>
-                <td className="px-4 py-3 font-medium text-slate-900">
-                  <Link href={`/admin/${creator.id}`}>{fullName}</Link>
+                <td className="p-0 font-medium text-slate-900">
+                  <Link href={`/admin/${creator.id}`} className="block px-4 py-3">
+                    {fullName}
+                  </Link>
                 </td>
-                <td className="px-4 py-3 text-slate-600">
-                  <Link href={`/admin/${creator.id}`} className="block">
+                <td className="p-0 text-slate-600">
+                  <Link href={`/admin/${creator.id}`} className="block px-4 py-3">
                     {creator.expectedHourlyRate != null ? `£${creator.expectedHourlyRate}/hr` : "—"}
                   </Link>
                 </td>
-                <td className="px-4 py-3 text-slate-600">
-                  <Link href={`/admin/${creator.id}`} className="block">
+                <td className="p-0 text-slate-600">
+                  <Link href={`/admin/${creator.id}`} className="block px-4 py-3">
                     {creator.primaryNiche}
                   </Link>
                 </td>
-                <td className="px-4 py-3 text-slate-600">
-                  <Link href={`/admin/${creator.id}`} className="block">
+                <td className="p-0 text-slate-600">
+                  <Link href={`/admin/${creator.id}`} className="block px-4 py-3">
                     {creator.city}, {creator.country}
                   </Link>
                 </td>
-                <td className="px-4 py-3">
-                  <Link href={`/admin/${creator.id}`} className="block">
+                <td className="p-0">
+                  <Link href={`/admin/${creator.id}`} className="block px-4 py-3">
                     <span
                       className={`inline-flex rounded-full px-2 py-1 text-xs font-medium ${statusStyles[creator.status]}`}
                     >
@@ -80,8 +82,8 @@ export function CreatorTable({ rows, dateLabel }: { rows: CreatorRow[]; dateLabe
                     </span>
                   </Link>
                 </td>
-                <td className="px-4 py-3 text-slate-500">
-                  <Link href={`/admin/${creator.id}`} className="block">
+                <td className="p-0 text-slate-500">
+                  <Link href={`/admin/${creator.id}`} className="block px-4 py-3">
                     {creator.date.toLocaleDateString("en-GB", {
                       day: "2-digit",
                       month: "short",

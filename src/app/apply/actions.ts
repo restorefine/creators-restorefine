@@ -114,7 +114,6 @@ export async function submitApplication(
   } else if (primaryNiche === "Other" && !primaryNicheOther) {
     fieldErrors.primaryNiche = "Please describe your niche.";
   }
-  if (!contentLinks[0]) fieldErrors.contentLink1 = "Please share at least one content link.";
 
   // Step 5 - Audience
   const audienceAgeGroup = str(formData, "audienceAgeGroup");

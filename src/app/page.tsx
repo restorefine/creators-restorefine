@@ -1,5 +1,5 @@
-import Link from "next/link";
 import localFont from "next/font/local";
+import { ApplyChecklistDialog } from "@/components/apply-checklist-dialog";
 
 const holiday = localFont({
   src: "../../public/fonts/Holiday.otf",
@@ -11,23 +11,13 @@ const features = [
     title: "Real paid work",
     description: "Hourly rates, flat fees, long-term deals and brand partnerships",
     icon: (
-      <path
-        strokeLinecap="round"
-        strokeLinejoin="round"
-        d="M12 6v12m-3-2.818.879.659c1.171.879 3.07.879 4.242 0 1.172-.879 1.172-2.303 0-3.182C13.536 12.219 12.768 12 12 12c-.725 0-1.45-.22-2.003-.659-1.106-.879-1.106-2.303 0-3.182s2.9-.879 4.006 0l.415.33M21 12a9 9 0 1 1-18 0 9 9 0 0 1 18 0Z"
-      />
+      <path strokeLinecap="round" strokeLinejoin="round" d="M12 6v12m-3-2.818.879.659c1.171.879 3.07.879 4.242 0 1.172-.879 1.172-2.303 0-3.182C13.536 12.219 12.768 12 12 12c-.725 0-1.45-.22-2.003-.659-1.106-.879-1.106-2.303 0-3.182s2.9-.879 4.006 0l.415.33M21 12a9 9 0 1 1-18 0 9 9 0 0 1 18 0Z" />
     ),
   },
   {
     title: "Brand access",
     description: "From local independents to national enterprise clients",
-    icon: (
-      <path
-        strokeLinecap="round"
-        strokeLinejoin="round"
-        d="M2.25 21h19.5m-18-18v18m10.5-18v18m6-13.5V21M6.75 6.75h.75m-.75 3h.75m-.75 3h.75m3-6h.75m-.75 3h.75m-.75 3h.75M6.75 21v-3.375c0-.621.504-1.125 1.125-1.125h2.25c.621 0 1.125.504 1.125 1.125V21"
-      />
-    ),
+    icon: <path strokeLinecap="round" strokeLinejoin="round" d="M2.25 21h19.5m-18-18v18m10.5-18v18m6-13.5V21M6.75 6.75h.75m-.75 3h.75m-.75 3h.75m3-6h.75m-.75 3h.75m-.75 3h.75M6.75 21v-3.375c0-.621.504-1.125 1.125-1.125h2.25c.621 0 1.125.504 1.125 1.125V21" />,
   },
   {
     title: "Any size welcome",
@@ -43,51 +33,25 @@ const features = [
   {
     title: "Your terms",
     description: "You choose which opportunities to accept. No obligations",
-    icon: (
-      <path
-        strokeLinecap="round"
-        strokeLinejoin="round"
-        d="M9 12.75 11.25 15 15 9.75M21 12a9 9 0 1 1-18 0 9 9 0 0 1 18 0Z"
-      />
-    ),
+    icon: <path strokeLinecap="round" strokeLinejoin="round" d="M9 12.75 11.25 15 15 9.75M21 12a9 9 0 1 1-18 0 9 9 0 0 1 18 0Z" />,
   },
 ];
 
 const trustItems = [
   {
     text: "Takes around 5 minutes to complete",
-    icon: (
-      <path
-        strokeLinecap="round"
-        strokeLinejoin="round"
-        d="M12 6v6h4.5m4.5 0a9 9 0 1 1-18 0 9 9 0 0 1 18 0Z"
-      />
-    ),
+    icon: <path strokeLinecap="round" strokeLinejoin="round" d="M12 6v6h4.5m4.5 0a9 9 0 1 1-18 0 9 9 0 0 1 18 0Z" />,
   },
   {
     text: "Your data is never sold. Shared only with vetted brand clients",
-    icon: (
-      <path
-        strokeLinecap="round"
-        strokeLinejoin="round"
-        d="M16.5 10.5V6.75a4.5 4.5 0 1 0-9 0v3.75m-.75 11.25h10.5a2.25 2.25 0 0 0 2.25-2.25v-6.75a2.25 2.25 0 0 0-2.25-2.25H6.75a2.25 2.25 0 0 0-2.25 2.25v6.75a2.25 2.25 0 0 0 2.25 2.25Z"
-      />
-    ),
+    icon: <path strokeLinecap="round" strokeLinejoin="round" d="M16.5 10.5V6.75a4.5 4.5 0 1 0-9 0v3.75m-.75 11.25h10.5a2.25 2.25 0 0 0 2.25-2.25v-6.75a2.25 2.25 0 0 0-2.25-2.25H6.75a2.25 2.25 0 0 0-2.25 2.25v6.75a2.25 2.25 0 0 0 2.25 2.25Z" />,
   },
   {
     text: "Open to creators across the UK",
     icon: (
       <>
-        <path
-          strokeLinecap="round"
-          strokeLinejoin="round"
-          d="M15 10.5a3 3 0 1 1-6 0 3 3 0 0 1 6 0Z"
-        />
-        <path
-          strokeLinecap="round"
-          strokeLinejoin="round"
-          d="M19.5 10.5c0 7.142-7.5 11.25-7.5 11.25S4.5 17.642 4.5 10.5a7.5 7.5 0 1 1 15 0Z"
-        />
+        <path strokeLinecap="round" strokeLinejoin="round" d="M15 10.5a3 3 0 1 1-6 0 3 3 0 0 1 6 0Z" />
+        <path strokeLinecap="round" strokeLinejoin="round" d="M19.5 10.5c0 7.142-7.5 11.25-7.5 11.25S4.5 17.642 4.5 10.5a7.5 7.5 0 1 1 15 0Z" />
       </>
     ),
   },
@@ -126,8 +90,7 @@ const faqs = [
   },
   {
     question: "Can I turn down opportunities?",
-    answer:
-      "Yes, always. You are never under any obligation to accept an opportunity we send you. There are no penalties for declining and it will not affect your standing in the Network.",
+    answer: "Yes, always. You are never under any obligation to accept an opportunity we send you. There are no penalties for declining and it will not affect your standing in the Network.",
   },
   {
     question: "Can I update my profile or leave the Network?",
@@ -136,8 +99,7 @@ const faqs = [
   },
   {
     question: "I have a question that is not covered here.",
-    answer:
-      "Get in touch at talent@restorefine.com and we will come back to you. We are a small team and we do actually read and reply to every email.",
+    answer: "Get in touch at talent@restorefine.com and we will come back to you. We are a small team and we do actually read and reply to every email.",
   },
 ];
 
@@ -147,11 +109,7 @@ export default function Home() {
       <section className="px-4 pt-20 pb-8 sm:pt-28 sm:pb-12">
         <div className="mx-auto max-w-3xl text-center">
           {/* eslint-disable-next-line @next/next/no-img-element */}
-          <img
-            src="/fonts/restorefine-logoblack.svg"
-            alt="RestoRefine"
-            className="mx-auto h-8 w-auto"
-          />
+          <img src="/fonts/restorefine-logoblack.svg" alt="RestoRefine" className="mx-auto h-8 w-auto" />
 
           <span className="mt-6 inline-flex items-center gap-2 rounded-full border border-green-200 bg-green-50 px-3 py-1 text-xs font-medium text-green-700">
             <span className="h-1.5 w-1.5 rounded-full bg-green-500" />
@@ -165,10 +123,8 @@ export default function Home() {
           </h1>
 
           <p className="mx-auto mt-6 max-w-2xl text-base text-slate-600 sm:text-lg">
-            RestoRefine Studios connects talented creators with leading brands
-            — from local food and lifestyle experiences to national presenter
-            deals. Whether you have 500 followers or 500,000, we find
-            opportunities that fit you.
+            RestoRefine Studios is building a creator network that connects talent with restaurants, local businesses and brands. Opportunities range from food experiences and product tastings through to content partnerships and presenter roles. Whatever your size, if you create, there is a place
+            for you here.
           </p>
         </div>
       </section>
@@ -177,49 +133,25 @@ export default function Home() {
         <div className="mx-auto max-w-2xl">
           <div className="grid grid-cols-2 gap-3 sm:gap-4">
             {features.map((feature) => (
-              <div
-                key={feature.title}
-                className="rounded-2xl border border-slate-200 bg-white p-4 shadow-sm sm:p-6"
-              >
-                <svg
-                  xmlns="http://www.w3.org/2000/svg"
-                  viewBox="0 0 24 24"
-                  fill="none"
-                  stroke="currentColor"
-                  strokeWidth="1.5"
-                  className="h-6 w-6 text-brand sm:h-7 sm:w-7"
-                >
+              <div key={feature.title} className="rounded-2xl border border-slate-200 bg-white p-4 shadow-sm sm:p-6">
+                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" className="h-6 w-6 text-brand sm:h-7 sm:w-7">
                   {feature.icon}
                 </svg>
-                <h3 className="mt-4 text-sm font-semibold text-slate-900 sm:text-base">
-                  {feature.title}
-                </h3>
+                <h3 className="mt-4 text-sm font-semibold text-slate-900 sm:text-base">{feature.title}</h3>
                 <p className="mt-1 text-xs text-slate-600 sm:text-sm">{feature.description}</p>
               </div>
             ))}
           </div>
 
           <div className="mt-6 flex flex-col items-center gap-3">
-            <Link
-              href="/apply"
-              className="inline-flex w-full items-center justify-center rounded-lg bg-brand px-6 py-3 text-sm font-semibold text-white shadow-sm transition hover:bg-brand-dark sm:w-auto"
-            >
-              Apply to join the network
-            </Link>
+            <ApplyChecklistDialog />
             <p className="text-xs text-slate-500">Takes around 5 minutes to complete</p>
           </div>
 
           <div className="mt-12 space-y-4 border-t border-slate-200 pt-10">
             {trustItems.map((item) => (
               <div key={item.text} className="flex items-center gap-3">
-                <svg
-                  xmlns="http://www.w3.org/2000/svg"
-                  viewBox="0 0 24 24"
-                  fill="none"
-                  stroke="currentColor"
-                  strokeWidth="1.5"
-                  className="h-5 w-5 flex-shrink-0 text-slate-400"
-                >
+                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" className="h-5 w-5 flex-shrink-0 text-slate-400">
                   {item.icon}
                 </svg>
                 <p className="text-sm text-slate-500">{item.text}</p>
@@ -229,75 +161,45 @@ export default function Home() {
         </div>
       </section>
 
-      <section className="border-t border-slate-100 px-4 py-16 sm:py-20">
+      <section className="border-t border-slate-100 px-4 pt-16 pb-10 sm:pt-20 sm:pb-12">
         <div className="mx-auto max-w-3xl text-center">
           <div>
             <h2 className="text-2xl font-bold tracking-tight text-slate-900 sm:text-3xl">
               Who <span className={`${holiday.className} text-brand`}>we</span> are
             </h2>
             <p className="mx-auto mt-4 max-w-2xl text-sm text-slate-600 sm:text-base">
-              <a
-                href="https://restorefine.co.uk"
-                target="_blank"
-                rel="noopener noreferrer"
-                className="font-medium text-brand hover:underline"
-              >
+              <a href="https://restorefine.co.uk" target="_blank" rel="noopener noreferrer" className="font-medium text-brand hover:underline">
                 RestoRefine Studios
               </a>{" "}
-              is a trading name of RestoRefine Ltd, a
-              Glasgow-based business growth partner. We work with clients
-              across a range of services to help them grow, reach new
-              audiences and build their brand.
+              is a trading name of RestoRefine Ltd, a Glasgow-based business growth partner. We work with clients across a range of services to help them grow, reach new audiences and build their brand.
             </p>
           </div>
 
           <div className="mt-12 border-t border-slate-200 pt-12">
             <h2 className="text-2xl font-bold tracking-tight text-slate-900 sm:text-3xl">
-              About the{" "}
-              <span className={`${holiday.className} text-brand`}>
-                RestoCreator
-              </span>{" "}
-              Network
+              About the <span className={`${holiday.className} text-brand`}>RestoCreator</span> Network
             </h2>
             <p className="mx-auto mt-4 max-w-2xl text-sm text-slate-600 sm:text-base">
-              The RestoCreator Network is how we connect brands with creators.
-              Our clients need the right people to bring their campaigns to
-              life and we built this network to make that happen properly.
-              Every creator is reviewed by our team, matched to briefs that
-              fit them, and paid fairly for their work. No algorithms, no
-              chasing brands yourself. Just real opportunities with brands
-              that suit you.
+              The RestoCreator Network is how we connect brands with creators. Our clients need the right people to bring their campaigns to life and we built this network to make that happen properly. Every creator is reviewed by our team, matched to briefs that fit them, and paid fairly for their
+              work. No algorithms, no chasing brands yourself. Just real opportunities with brands that suit you.
             </p>
           </div>
         </div>
       </section>
 
-      <section className="px-4 py-16 sm:py-20">
-        <div className="mx-auto max-w-3xl">
+      <section className="px-4 pt-10 pb-16 sm:pt-12 sm:pb-20">
+        <div className="mx-auto max-w-3xl border-t border-slate-200 pt-10 sm:pt-12">
           <h2 className="text-center text-2xl font-bold tracking-tight text-slate-900 sm:text-3xl">
             Frequently <span className={`${holiday.className} text-brand`}>asked</span> questions
           </h2>
 
           <div className="mt-10 space-y-3">
             {faqs.map((faq, index) => (
-              <div
-                key={faq.question}
-                className="group rounded-2xl border border-slate-200 bg-white shadow-sm transition-colors hover:border-brand/40"
-              >
+              <div key={faq.question} className="group rounded-2xl border border-slate-200 bg-white shadow-sm transition-colors hover:border-brand/40">
                 <input type="checkbox" id={`faq-${index}`} className="peer sr-only" />
-                <label
-                  htmlFor={`faq-${index}`}
-                  className="flex cursor-pointer items-center justify-between gap-4 p-6 text-base font-semibold text-slate-900"
-                >
+                <label htmlFor={`faq-${index}`} className="flex cursor-pointer items-center justify-between gap-4 p-6 text-base font-semibold text-slate-900">
                   {faq.question}
-                  <svg
-                    xmlns="http://www.w3.org/2000/svg"
-                    viewBox="0 0 24 24"
-                    fill="none"
-                    stroke="currentColor"
-                    strokeWidth="1.5"
-                    className="h-5 w-5 flex-shrink-0 text-brand transition-transform duration-300 group-hover:rotate-180 group-has-checked:rotate-180"
-                  >
+                  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" className="h-5 w-5 flex-shrink-0 text-brand transition-transform duration-300 group-hover:rotate-180 group-has-checked:rotate-180">
                     <path strokeLinecap="round" strokeLinejoin="round" d="M19.5 8.25l-7.5 7.5-7.5-7.5" />
                   </svg>
                 </label>
