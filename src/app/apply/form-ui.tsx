@@ -410,8 +410,10 @@ export function PhotoUpload({
       setPreview(URL.createObjectURL(compressed));
       setCompressedSize(compressed.size);
       setCompressStatus("done");
-    } catch {
-      // Compression failed – keep the original file in the input and warn
+    } catch (err) {
+      // Compression failed (e.g. HEIC on unsupported browser) – keep the
+      // original file in the input and show a warning.
+      console.warn("Image optimisation failed:", err);
       setCompressStatus("error");
     }
   };
@@ -458,7 +460,7 @@ export function PhotoUpload({
         ref={inputRef}
         type="file"
         name={name}
-        accept="image/jpeg,image/png,.jpg,.jpeg,.png"
+        accept="image/jpeg,image/png,image/heic,image/heif,image/webp,.jpg,.jpeg,.png,.heic,.heif"
         className="sr-only"
         onChange={handleFileChange}
       />
