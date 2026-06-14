@@ -1,6 +1,5 @@
 "use client";
 
-import Link from "next/link";
 import { INVOICING_OPTIONS, VAT_OPTIONS } from "../options";
 import { FieldError, FieldLabel, SelectInput, TextAreaField, TextInput } from "../form-ui";
 
@@ -47,29 +46,7 @@ export function Step7Final({ errors }: { errors: Record<string, string> }) {
         </div>
       </div>
 
-      <div>
-        <label className="flex items-start gap-2 text-sm text-slate-700">
-          <input
-            type="checkbox"
-            name="termsAccepted"
-            value="true"
-            className="mt-0.5 h-4 w-4 rounded border-slate-300 text-brand focus:ring-brand"
-          />
-          <span>
-            I confirm the information above is accurate and I agree to the{" "}
-            <Link
-              href="/terms-and-condition"
-              target="_blank"
-              rel="noopener noreferrer"
-              className="font-medium text-brand hover:text-brand-dark"
-            >
-              Terms &amp; Conditions
-            </Link>
-            .
-          </span>
-        </label>
-        <FieldError message={errors.termsAccepted} />
-      </div>
+
     </div>
   );
 }

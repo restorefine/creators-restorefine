@@ -16,6 +16,12 @@ const statusStyles: Record<string, string> = {
   REJECTED: "bg-red-100 text-red-800",
 };
 
+function formatFollowers(n: number): string {
+  if (n >= 1_000_000) return `${parseFloat((n / 1_000_000).toFixed(1))}M`;
+  if (n >= 1_000) return `${parseFloat((n / 1_000).toFixed(1))}K`;
+  return String(n);
+}
+
 type SocialPlatformData = { na: boolean; handle: string | null; followers: number | null };
 
 function Section({ title, children }: { title: string; children: React.ReactNode }) {
@@ -150,7 +156,7 @@ export default async function CreatorDetailPage({
                         {data?.na
                           ? <span className="text-slate-400">N/A</span>
                           : data?.followers != null
-                            ? data.followers.toLocaleString("en-GB")
+                            ? formatFollowers(data.followers)
                             : "—"}
                       </td>
                     </tr>

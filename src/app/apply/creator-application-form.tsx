@@ -57,7 +57,7 @@ const FIELD_STEP: Record<string, number> = {
   bio: 6,
   vatStatus: 6,
   invoicingAs: 6,
-  termsAccepted: 6,
+  termsAccepted: 7,
   frontFace: 7,
   sideFace: 7,
   lifestyle: 7,
@@ -125,15 +125,15 @@ function validateStep(step: number, formData: FormData): Record<string, string> 
     if (!get("bio")) errors.bio = "Please add a short bio.";
     if (!get("vatStatus")) errors.vatStatus = "Please select an option.";
     if (!get("invoicingAs")) errors.invoicingAs = "Please select an option.";
-    if (formData.get("termsAccepted") !== "true") {
-      errors.termsAccepted = "You must accept the terms to continue.";
-    }
   }
 
   if (step === 7) {
     if (!isFileSelected(formData.get("frontFace"))) errors.frontFace = "This photo is required.";
     if (!isFileSelected(formData.get("sideFace"))) errors.sideFace = "This photo is required.";
     if (!isFileSelected(formData.get("lifestyle"))) errors.lifestyle = "This photo is required.";
+    if (formData.get("termsAccepted") !== "true") {
+      errors.termsAccepted = "You must accept the terms to continue.";
+    }
   }
 
   return errors;

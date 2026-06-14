@@ -159,10 +159,10 @@ export const STEP_META: StepMeta[] = [
   {
     step: 7,
     label: "Your photos",
-    title: "Let's start with your photos",
+    title: "One last thing: your photos",
     highlight: "photos",
     description:
-      "Brand clients want to see your look and your content style. Upload three images below. These form the first impression of your profile.",
+      "Brand clients want to see your look and your content style. Upload three images below — these form the first impression of your profile.",
     note: "Use a plain or neutral background for headshots. Good natural lighting works best. Your lifestyle shot should reflect your usual content style.",
   },
 ];
