@@ -5,15 +5,41 @@ import { useRef, useState, type InputHTMLAttributes, type ReactNode } from "reac
 // ---------------------------------------------------------------------------
 // Image compression utility
 // ---------------------------------------------------------------------------
-const MAX_SIZE_BYTES = 5 * 1024 * 1024; // 5 MB
+// Vercel Functions hard-cap request bodies at 4.5MB (not configurable via
+// next.config bodySizeLimit). With 3 photos per submission, each one needs to
+// stay well under 1.5MB so the combined FormData payload clears that limit.
+const MAX_SIZE_BYTES = 1.2 * 1024 * 1024; // 1.2 MB per photo
+
+function isHeic(file: File): boolean {
+  return (
+    file.type === "image/heic" ||
+    file.type === "image/heif" ||
+    /\.(heic|heif)$/i.test(file.name)
+  );
+}
+
+// iOS delivers camera/gallery photos as HEIC, which most browsers (and
+// <canvas>) cannot decode. Convert to JPEG client-side first so the rest of
+// the pipeline always works with a format every browser can re-encode.
+async function convertHeicToJpeg(file: File): Promise<File> {
+  const heic2any = (await import("heic2any")).default;
+  const result = await heic2any({ blob: file, toType: "image/jpeg", quality: 0.9 });
+  const blob = Array.isArray(result) ? result[0] : result;
+  return new File([blob], file.name.replace(/\.[^.]+$/, ".jpg"), {
+    type: "image/jpeg",
+    lastModified: Date.now(),
+  });
+}
 
 async function compressImage(file: File): Promise<File> {
+  const source = isHeic(file) ? await convertHeicToJpeg(file) : file;
+
   // If already small enough and is a JPEG, return as-is
-  if (file.size <= MAX_SIZE_BYTES && file.type === "image/jpeg") return file;
+  if (source.size <= MAX_SIZE_BYTES && source.type === "image/jpeg") return source;
 
   return new Promise((resolve, reject) => {
     const img = new Image();
-    const objectUrl = URL.createObjectURL(file);
+    const objectUrl = URL.createObjectURL(source);
 
     img.onload = () => {
       URL.revokeObjectURL(objectUrl);
@@ -38,14 +64,14 @@ async function compressImage(file: File): Promise<File> {
       if (!ctx) return reject(new Error("Canvas not available"));
       ctx.drawImage(img, 0, 0, width, height);
 
-      // Try progressively lower quality until under 5 MB
+      // Try progressively lower quality until under the size cap
       let quality = 0.85;
       const tryCompress = () => {
         canvas.toBlob(
           (blob) => {
             if (!blob) return reject(new Error("Compression failed"));
             if (blob.size <= MAX_SIZE_BYTES || quality <= 0.1) {
-              const compressed = new File([blob], file.name.replace(/\.[^.]+$/, ".jpg"), {
+              const compressed = new File([blob], source.name.replace(/\.[^.]+$/, ".jpg"), {
                 type: "image/jpeg",
                 lastModified: Date.now(),
               });
@@ -411,9 +437,9 @@ export function PhotoUpload({
       setCompressedSize(compressed.size);
       setCompressStatus("done");
     } catch (err) {
-      // Compression failed — the browser cannot decode this format (e.g. HEIC)
-      // in a Canvas context. CRITICALLY: clear the input so the raw uncompressed
-      // file (which can be 15-30MB) is NOT sent to the server.
+      // HEIC conversion or compression failed (e.g. corrupt/unsupported file).
+      // CRITICALLY: clear the input so the raw uncompressed file (which can
+      // be 15-30MB) is NOT sent to the server.
       console.warn("Image optimisation failed:", err);
       URL.revokeObjectURL(rawUrl);
       setPreview(null);
@@ -468,7 +494,7 @@ export function PhotoUpload({
         ref={inputRef}
         type="file"
         name={name}
-        accept="image/jpeg,image/png,image/webp,.jpg,.jpeg,.png"
+        accept="image/jpeg,image/png,image/webp,image/heic,image/heif,.jpg,.jpeg,.png,.heic,.heif"
         className="sr-only"
         onChange={handleFileChange}
       />
