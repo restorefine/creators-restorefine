@@ -5,6 +5,7 @@ import { getSignedPhotoUrl } from "@/lib/supabase/admin";
 import { updateCreatorStatus } from "../../actions";
 import { CreatorStatus } from "@/generated/prisma/client";
 import { SOCIAL_PLATFORMS } from "@/app/apply/options";
+import { PhotoGallery } from "./photo-lightbox";
 
 export const dynamic = "force-dynamic";
 
@@ -97,29 +98,14 @@ export default async function CreatorDetailPage({
         </div>
 
         <Section title="Photos">
-          <div className="flex flex-wrap gap-6">
-            {[
+          <PhotoGallery
+            fullName={fullName}
+            photos={[
               { label: "Front headshot", url: frontFaceUrl },
               { label: "Side profile", url: sideFaceUrl },
               { label: "Lifestyle / content", url: lifestyleUrl },
-            ].map(({ label, url }) => (
-              <div key={label}>
-                <p className="mb-2 text-xs font-medium text-slate-500">{label}</p>
-                {url ? (
-                  // eslint-disable-next-line @next/next/no-img-element
-                  <img
-                    src={url}
-                    alt={`${fullName} ${label}`}
-                    className="aspect-[4/5] w-40 rounded-xl object-cover"
-                  />
-                ) : (
-                  <div className="flex aspect-[4/5] w-40 items-center justify-center rounded-xl bg-slate-100 text-xs text-slate-400">
-                    Unavailable
-                  </div>
-                )}
-              </div>
-            ))}
-          </div>
+            ]}
+          />
         </Section>
 
         <Section title="About">
