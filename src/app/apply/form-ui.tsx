@@ -411,10 +411,18 @@ export function PhotoUpload({
       setCompressedSize(compressed.size);
       setCompressStatus("done");
     } catch (err) {
-      // Compression failed (e.g. HEIC on unsupported browser) – keep the
-      // original file in the input and show a warning.
+      // Compression failed — the browser cannot decode this format (e.g. HEIC)
+      // in a Canvas context. CRITICALLY: clear the input so the raw uncompressed
+      // file (which can be 15-30MB) is NOT sent to the server.
       console.warn("Image optimisation failed:", err);
+      URL.revokeObjectURL(rawUrl);
+      setPreview(null);
+      setCompressedSize(null);
       setCompressStatus("error");
+      // Clear the file input so the raw file is not submitted
+      if (inputRef.current) {
+        inputRef.current.value = "";
+      }
     }
   };
 
@@ -460,7 +468,7 @@ export function PhotoUpload({
         ref={inputRef}
         type="file"
         name={name}
-        accept="image/jpeg,image/png,image/heic,image/heif,image/webp,.jpg,.jpeg,.png,.heic,.heif"
+        accept="image/jpeg,image/png,image/webp,.jpg,.jpeg,.png"
         className="sr-only"
         onChange={handleFileChange}
       />
@@ -468,9 +476,9 @@ export function PhotoUpload({
       {compressStatus === "done" && compressedSize !== null ? (
         <p className="mt-1 text-center text-xs text-green-600">✓ Optimised · {formatSize(compressedSize)}</p>
       ) : compressStatus === "error" ? (
-        <p className="mt-1 text-center text-xs text-amber-600">Could not optimise — please keep under 5 MB</p>
+        <p className="mt-1 text-center text-xs text-red-600">Could not process this photo. On iPhone, open it in Photos → tap Share → &quot;Save as JPG&quot; and upload that instead.</p>
       ) : (
-        <p className="mt-1 text-center text-xs text-slate-400">JPG or PNG, up to 5MB</p>
+        <p className="mt-1 text-center text-xs text-slate-400">JPG or PNG only</p>
       )}
 
       <FieldError message={error} />

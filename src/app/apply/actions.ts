@@ -11,36 +11,27 @@ const MAX_FILE_SIZE = 5 * 1024 * 1024; // 5MB
 const ACCEPTED_TYPES = [
   "image/jpeg",
   "image/png",
+  "image/webp",
   "image/heic",
   "image/heif",
-  "image/webp",
+  "", // iOS sometimes reports empty MIME type for HEIC
 ];
 
 // iOS camera sometimes reports an empty MIME type for HEIC files.
 // Normalise any HEIC/HEIF (or unknown) image to JPEG before upload so
 // Supabase always receives a web-safe format.
 async function normaliseToJpeg(file: File): Promise<{ buffer: Buffer; contentType: string; ext: string }> {
-  const isHeic =
-    file.type === "image/heic" ||
-    file.type === "image/heif" ||
-    // empty type can occur when taking a live photo on iOS
-    (file.type === "" && /\.hei[cf]$/i.test(file.name));
-
   const arrayBuffer = await file.arrayBuffer();
   const inputBuffer = Buffer.from(arrayBuffer);
-
-  if (isHeic || file.type === "") {
-    // Convert to JPEG via sharp (handles HEIC/HEIF natively via libvips)
-    const jpeg = await sharp(inputBuffer).rotate().jpeg({ quality: 88 }).toBuffer();
-    return { buffer: jpeg, contentType: "image/jpeg", ext: "jpg" };
-  }
 
   if (file.type === "image/png") {
     return { buffer: inputBuffer, contentType: "image/png", ext: "png" };
   }
 
-  // Default: treat as JPEG (already compressed on the client)
-  return { buffer: inputBuffer, contentType: "image/jpeg", ext: "jpg" };
+  // JPEG, WebP, HEIC, HEIF — auto-rotate and re-encode as JPEG
+  // sharp handles HEIC natively on the server (libvips with HEIC support)
+  const jpeg = await sharp(inputBuffer).rotate().jpeg({ quality: 88 }).toBuffer();
+  return { buffer: jpeg, contentType: "image/jpeg", ext: "jpg" };
 }
 
 export type ApplicationFormState = {
@@ -54,14 +45,14 @@ function validateImage(file: File | null, fieldName: string, errors: Record<stri
     errors[fieldName] = "This photo is required.";
     return;
   }
-  // Allow empty MIME type — iOS camera sometimes omits it for HEIC files.
-  // We'll detect and convert those server-side.
-  if (file.type !== "" && !ACCEPTED_TYPES.includes(file.type)) {
-    errors[fieldName] = "Please upload a JPG, PNG, or HEIC image.";
+  if (!ACCEPTED_TYPES.includes(file.type)) {
+    errors[fieldName] = "Please upload a JPG, PNG, or iPhone (HEIC) image.";
     return;
   }
-  if (file.size > MAX_FILE_SIZE) {
-    errors[fieldName] = "Image must be smaller than 5MB.";
+  // HEIC files from iPhone can be large before server-side conversion — allow up to 50 MB
+  const sizeLimit = (file.type === "image/heic" || file.type === "image/heif" || file.type === "") ? 50 * 1024 * 1024 : MAX_FILE_SIZE;
+  if (file.size > sizeLimit) {
+    errors[fieldName] = "Image is too large. Please try a different photo.";
   }
 }
 
