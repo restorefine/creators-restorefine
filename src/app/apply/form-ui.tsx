@@ -2,6 +2,75 @@
 
 import { useRef, useState, type InputHTMLAttributes, type ReactNode } from "react";
 
+// ---------------------------------------------------------------------------
+// Image compression utility
+// ---------------------------------------------------------------------------
+const MAX_SIZE_BYTES = 5 * 1024 * 1024; // 5 MB
+
+async function compressImage(file: File): Promise<File> {
+  // If already small enough and is a JPEG, return as-is
+  if (file.size <= MAX_SIZE_BYTES && file.type === "image/jpeg") return file;
+
+  return new Promise((resolve, reject) => {
+    const img = new Image();
+    const objectUrl = URL.createObjectURL(file);
+
+    img.onload = () => {
+      URL.revokeObjectURL(objectUrl);
+
+      // Scale down if either dimension exceeds 2400px
+      const MAX_DIM = 2400;
+      let { width, height } = img;
+      if (width > MAX_DIM || height > MAX_DIM) {
+        if (width > height) {
+          height = Math.round((height / width) * MAX_DIM);
+          width = MAX_DIM;
+        } else {
+          width = Math.round((width / height) * MAX_DIM);
+          height = MAX_DIM;
+        }
+      }
+
+      const canvas = document.createElement("canvas");
+      canvas.width = width;
+      canvas.height = height;
+      const ctx = canvas.getContext("2d");
+      if (!ctx) return reject(new Error("Canvas not available"));
+      ctx.drawImage(img, 0, 0, width, height);
+
+      // Try progressively lower quality until under 5 MB
+      let quality = 0.85;
+      const tryCompress = () => {
+        canvas.toBlob(
+          (blob) => {
+            if (!blob) return reject(new Error("Compression failed"));
+            if (blob.size <= MAX_SIZE_BYTES || quality <= 0.1) {
+              const compressed = new File([blob], file.name.replace(/\.[^.]+$/, ".jpg"), {
+                type: "image/jpeg",
+                lastModified: Date.now(),
+              });
+              resolve(compressed);
+            } else {
+              quality = Math.max(quality - 0.1, 0.1);
+              tryCompress();
+            }
+          },
+          "image/jpeg",
+          quality,
+        );
+      };
+      tryCompress();
+    };
+
+    img.onerror = () => {
+      URL.revokeObjectURL(objectUrl);
+      reject(new Error("Failed to load image"));
+    };
+
+    img.src = objectUrl;
+  });
+}
+
 export function FieldError({ message }: { message?: string }) {
   if (!message) return null;
   return <p className="mt-1 text-sm text-red-600">{message}</p>;
@@ -306,13 +375,57 @@ export function PhotoUpload({
   error?: string;
 }) {
   const [preview, setPreview] = useState<string | null>(null);
+  const [compressStatus, setCompressStatus] = useState<"idle" | "compressing" | "done" | "error">("idle");
+  const [compressedSize, setCompressedSize] = useState<number | null>(null);
   const inputRef = useRef<HTMLInputElement>(null);
+
+  const handleFileChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) {
+      setPreview(null);
+      setCompressStatus("idle");
+      setCompressedSize(null);
+      return;
+    }
+
+    // Show a preview immediately from the raw file
+    const rawUrl = URL.createObjectURL(file);
+    setPreview(rawUrl);
+    setCompressStatus("compressing");
+    setCompressedSize(null);
+
+    try {
+      const compressed = await compressImage(file);
+
+      // Inject the compressed file back onto the input via DataTransfer
+      // so that FormData / the server action receives the compressed version.
+      const dt = new DataTransfer();
+      dt.items.add(compressed);
+      if (inputRef.current) {
+        inputRef.current.files = dt.files;
+      }
+
+      // Update preview to the compressed blob
+      URL.revokeObjectURL(rawUrl);
+      setPreview(URL.createObjectURL(compressed));
+      setCompressedSize(compressed.size);
+      setCompressStatus("done");
+    } catch {
+      // Compression failed – keep the original file in the input and warn
+      setCompressStatus("error");
+    }
+  };
+
+  const formatSize = (bytes: number) => {
+    if (bytes < 1024 * 1024) return `${(bytes / 1024).toFixed(0)} KB`;
+    return `${(bytes / (1024 * 1024)).toFixed(1)} MB`;
+  };
 
   return (
     <div>
       <div
         onClick={() => inputRef.current?.click()}
-        className={`flex aspect-[4/5] w-full cursor-pointer flex-col items-center justify-center overflow-hidden rounded-xl border-2 border-dashed text-center transition hover:border-brand ${
+        className={`relative flex aspect-[4/5] w-full cursor-pointer flex-col items-center justify-center overflow-hidden rounded-xl border-2 border-dashed text-center transition hover:border-brand ${
           error ? "border-red-400 bg-red-50" : "border-slate-300 bg-white"
         }`}
       >
@@ -328,19 +441,36 @@ export function PhotoUpload({
             <span className="text-xs">{helpText}</span>
           </div>
         )}
+
+        {/* Compression status overlay */}
+        {compressStatus === "compressing" && (
+          <div className="absolute inset-0 flex flex-col items-center justify-center gap-2 bg-black/50">
+            <svg className="h-6 w-6 animate-spin text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+              <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
+              <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v4l3-3-3-3v4a8 8 0 00-8 8h4z" />
+            </svg>
+            <span className="text-xs font-medium text-white">Optimising…</span>
+          </div>
+        )}
       </div>
+
       <input
         ref={inputRef}
         type="file"
         name={name}
         accept="image/jpeg,image/png,.jpg,.jpeg,.png"
         className="sr-only"
-        onChange={(e) => {
-          const file = e.target.files?.[0];
-          setPreview(file ? URL.createObjectURL(file) : null);
-        }}
+        onChange={handleFileChange}
       />
-      <p className="mt-1 text-center text-xs text-slate-400">JPG or PNG, up to 5MB</p>
+
+      {compressStatus === "done" && compressedSize !== null ? (
+        <p className="mt-1 text-center text-xs text-green-600">✓ Optimised · {formatSize(compressedSize)}</p>
+      ) : compressStatus === "error" ? (
+        <p className="mt-1 text-center text-xs text-amber-600">Could not optimise — please keep under 5 MB</p>
+      ) : (
+        <p className="mt-1 text-center text-xs text-slate-400">JPG or PNG, up to 5MB</p>
+      )}
+
       <FieldError message={error} />
     </div>
   );
