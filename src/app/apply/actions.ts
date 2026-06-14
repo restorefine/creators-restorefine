@@ -209,10 +209,10 @@ export async function submitApplication(
     };
   }
 
-  const supabase = createAdminClient();
   const applicationId = crypto.randomUUID();
 
   const uploadPhoto = async (file: File, label: string) => {
+    const supabase = createAdminClient();
     const { buffer, contentType, ext } = await normaliseToJpeg(file);
     const path = `${applicationId}/${label}-${crypto.randomUUID()}.${ext}`;
     const { error } = await supabase.storage
