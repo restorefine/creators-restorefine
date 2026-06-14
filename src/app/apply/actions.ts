@@ -1,5 +1,6 @@
 "use server";
 
+import sharp from "sharp";
 import { prisma } from "@/lib/prisma";
 import { createAdminClient, CREATOR_PHOTOS_BUCKET } from "@/lib/supabase/admin";
 import { resend, EMAIL_FROM, TALENT_EMAIL } from "@/lib/email/resend";
@@ -7,7 +8,40 @@ import { newApplicationEmail } from "@/lib/email/new-application";
 import { SOCIAL_PLATFORMS } from "./options";
 
 const MAX_FILE_SIZE = 5 * 1024 * 1024; // 5MB
-const ACCEPTED_TYPES = ["image/jpeg", "image/png"];
+const ACCEPTED_TYPES = [
+  "image/jpeg",
+  "image/png",
+  "image/heic",
+  "image/heif",
+  "image/webp",
+];
+
+// iOS camera sometimes reports an empty MIME type for HEIC files.
+// Normalise any HEIC/HEIF (or unknown) image to JPEG before upload so
+// Supabase always receives a web-safe format.
+async function normaliseToJpeg(file: File): Promise<{ buffer: Buffer; contentType: string; ext: string }> {
+  const isHeic =
+    file.type === "image/heic" ||
+    file.type === "image/heif" ||
+    // empty type can occur when taking a live photo on iOS
+    (file.type === "" && /\.hei[cf]$/i.test(file.name));
+
+  const arrayBuffer = await file.arrayBuffer();
+  const inputBuffer = Buffer.from(arrayBuffer);
+
+  if (isHeic || file.type === "") {
+    // Convert to JPEG via sharp (handles HEIC/HEIF natively via libvips)
+    const jpeg = await sharp(inputBuffer).rotate().jpeg({ quality: 88 }).toBuffer();
+    return { buffer: jpeg, contentType: "image/jpeg", ext: "jpg" };
+  }
+
+  if (file.type === "image/png") {
+    return { buffer: inputBuffer, contentType: "image/png", ext: "png" };
+  }
+
+  // Default: treat as JPEG (already compressed on the client)
+  return { buffer: inputBuffer, contentType: "image/jpeg", ext: "jpg" };
+}
 
 export type ApplicationFormState = {
   status: "idle" | "success" | "error";
@@ -20,8 +54,10 @@ function validateImage(file: File | null, fieldName: string, errors: Record<stri
     errors[fieldName] = "This photo is required.";
     return;
   }
-  if (!ACCEPTED_TYPES.includes(file.type)) {
-    errors[fieldName] = "Please upload a JPG or PNG image.";
+  // Allow empty MIME type — iOS camera sometimes omits it for HEIC files.
+  // We'll detect and convert those server-side.
+  if (file.type !== "" && !ACCEPTED_TYPES.includes(file.type)) {
+    errors[fieldName] = "Please upload a JPG, PNG, or HEIC image.";
     return;
   }
   if (file.size > MAX_FILE_SIZE) {
@@ -186,11 +222,11 @@ export async function submitApplication(
   const applicationId = crypto.randomUUID();
 
   const uploadPhoto = async (file: File, label: string) => {
-    const extension = file.name.split(".").pop() || "jpg";
-    const path = `${applicationId}/${label}-${crypto.randomUUID()}.${extension}`;
+    const { buffer, contentType, ext } = await normaliseToJpeg(file);
+    const path = `${applicationId}/${label}-${crypto.randomUUID()}.${ext}`;
     const { error } = await supabase.storage
       .from(CREATOR_PHOTOS_BUCKET)
-      .upload(path, file, { contentType: file.type, upsert: false });
+      .upload(path, buffer, { contentType, upsert: false });
 
     if (error) {
       throw new Error(`Failed to upload ${label} photo: ${error.message}`);
