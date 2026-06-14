@@ -154,15 +154,14 @@ export const STEP_META: StepMeta[] = [
     label: "Final details",
     title: "Just a few final details",
     highlight: "final details",
-    description: "Almost done — wrap up your profile and submit your application.",
+    description: "Add your bio, VAT status and invoicing details before we move to photos.",
   },
   {
     step: 7,
     label: "Your photos",
     title: "One last thing: your photos",
     highlight: "photos",
-    description:
-      "Brand clients want to see your look and your content style. Upload three images below — these form the first impression of your profile.",
+    description: "Almost done! Upload three images so brands can get a feel for your look and content style.",
     note: "Use a plain or neutral background for headshots. Good natural lighting works best. Your lifestyle shot should reflect your usual content style.",
   },
 ];
