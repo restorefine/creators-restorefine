@@ -39,6 +39,7 @@ export default async function CreatorDirectoryPage({
       city: creator.city,
       country: creator.country,
       status: creator.status,
+      adminRating: creator.adminRating,
       date: creator.updatedAt,
       thumbnailUrl: await getSignedPhotoUrl(creator.frontFacePath),
     })),

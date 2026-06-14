@@ -6,6 +6,7 @@ import { updateCreatorStatus } from "../../actions";
 import { CreatorStatus } from "@/generated/prisma/client";
 import { SOCIAL_PLATFORMS } from "@/app/apply/options";
 import { PhotoGallery } from "./photo-lightbox";
+import { StarRating } from "./star-rating";
 
 export const dynamic = "force-dynamic";
 
@@ -95,6 +96,12 @@ export default async function CreatorDetailPage({
           >
             {creator.status}
           </span>
+        </div>
+
+        {/* Admin rating */}
+        <div className="mt-4 rounded-xl border border-amber-100 bg-amber-50 px-4 py-3">
+          <p className="mb-2 text-xs font-semibold uppercase tracking-wide text-amber-700">Admin rating</p>
+          <StarRating creatorId={creator.id} initialRating={creator.adminRating} />
         </div>
 
         <Section title="Photos">

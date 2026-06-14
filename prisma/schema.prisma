@@ -73,9 +73,10 @@ model Creator {
   additionalInfo String?
   termsAccepted  Boolean @default(false)
 
-  status    CreatorStatus @default(PENDING)
-  createdAt DateTime      @default(now())
-  updatedAt DateTime      @updatedAt
+  status      CreatorStatus @default(PENDING)
+  adminRating Int?
+  createdAt   DateTime      @default(now())
+  updatedAt   DateTime      @updatedAt
 
   @@map("creators")
 }

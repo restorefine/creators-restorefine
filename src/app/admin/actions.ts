@@ -23,6 +23,16 @@ export async function updateCreatorStatus(id: string, status: CreatorStatus) {
   revalidatePath(`/admin/${id}`);
 }
 
+export async function rateCreator(id: string, rating: number) {
+  const clamped = Math.min(5, Math.max(1, Math.round(rating)));
+  await prisma.creator.update({
+    where: { id },
+    data: { adminRating: clamped },
+  });
+  revalidatePath("/admin");
+  revalidatePath(`/admin/${id}`);
+}
+
 export async function exportCreatorsCsv(scope: "all" | "approved", fields: string[]) {
   const where = scope === "approved" ? { status: CreatorStatus.APPROVED } : {};
   const creators = await prisma.creator.findMany({ where, orderBy: { createdAt: "desc" } });
