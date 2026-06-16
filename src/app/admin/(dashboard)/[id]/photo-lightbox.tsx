@@ -129,12 +129,12 @@ function LightboxDialog({
 export function PhotoGallery({
   photos,
   fullName,
+  layout = "horizontal",
 }: {
   photos: { label: string; url: string | null }[];
   fullName: string;
+  layout?: "horizontal" | "sidebar";
 }) {
-  // Build download names: "{FirstLast}-{label}.{ext}"
-  // Sanitise name for a safe filename
   const safeName = fullName.replace(/[^a-zA-Z0-9 ]/g, "").replace(/\s+/g, "");
 
   const enriched: Photo[] = photos.map(({ label, url }) => {
@@ -195,16 +195,24 @@ export function PhotoGallery({
         }
       `}</style>
 
-      <div className="flex flex-wrap gap-6">
-        {enriched.map((photo) => (
-          <PhotoThumb key={photo.label} photo={photo} />
-        ))}
-      </div>
+      {layout === "sidebar" ? (
+        <div className="grid grid-cols-2 gap-2">
+          {enriched.map((photo) => (
+            <PhotoThumb key={photo.label} photo={photo} compact />
+          ))}
+        </div>
+      ) : (
+        <div className="grid grid-cols-3 gap-3">
+          {enriched.map((photo) => (
+            <PhotoThumb key={photo.label} photo={photo} />
+          ))}
+        </div>
+      )}
     </>
   );
 }
 
-function PhotoThumb({ photo }: { photo: Photo }) {
+function PhotoThumb({ photo, compact }: { photo: Photo; compact?: boolean }) {
   const openRef = useRef<HTMLButtonElement>(null);
   const isOpen = useRef(false);
 
@@ -229,44 +237,48 @@ function PhotoThumb({ photo }: { photo: Photo }) {
 
   if (!photo.url) {
     return (
-      <div key={photo.label}>
-        <p className="mb-2 text-xs font-medium text-slate-500">{photo.label}</p>
-        <div className="flex aspect-[4/5] w-40 items-center justify-center rounded-xl bg-slate-100 text-xs text-slate-400">
-          Unavailable
+      <div>
+        {!compact && <p className="mb-2 text-xs font-medium text-slate-500">{photo.label}</p>}
+        <div
+          title={compact ? photo.label : undefined}
+          className="flex aspect-[4/5] w-full items-center justify-center rounded-xl bg-slate-100 text-xs text-slate-400"
+        >
+          {compact ? "—" : "Unavailable"}
         </div>
+        {compact && <p className="mt-1 truncate text-center text-[10px] text-slate-400">{photo.label.split(" ")[0]}</p>}
       </div>
     );
   }
 
   return (
     <div>
-      <p className="mb-2 text-xs font-medium text-slate-500">{photo.label}</p>
+      {!compact && <p className="mb-2 text-xs font-medium text-slate-500">{photo.label}</p>}
       <button
         ref={openRef}
         type="button"
         onClick={open}
         title={`View ${photo.label} full size`}
-        className="group relative block overflow-hidden rounded-xl focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-brand"
+        className="group relative block w-full overflow-hidden rounded-xl focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-brand"
       >
         {/* eslint-disable-next-line @next/next/no-img-element */}
         <img
           src={photo.url}
           alt={photo.label}
-          className="aspect-[4/5] w-40 rounded-xl object-cover transition duration-200 group-hover:scale-105 group-hover:brightness-90"
+          className="aspect-[4/5] w-full rounded-xl object-cover transition duration-200 group-hover:scale-105 group-hover:brightness-90"
         />
-        {/* Hover overlay */}
         <span className="absolute inset-0 flex items-center justify-center rounded-xl bg-black/0 transition duration-200 group-hover:bg-black/30">
           <svg
             xmlns="http://www.w3.org/2000/svg"
             viewBox="0 0 20 20"
             fill="white"
-            className="h-7 w-7 opacity-0 drop-shadow transition duration-200 group-hover:opacity-100"
+            className="h-5 w-5 opacity-0 drop-shadow transition duration-200 group-hover:opacity-100"
             aria-hidden="true"
           >
             <path d="M9 3.5a5.5 5.5 0 1 0 0 11 5.5 5.5 0 0 0 0-11ZM2 9a7 7 0 1 1 12.452 4.391l3.328 3.329a.75.75 0 1 1-1.06 1.06l-3.329-3.328A7 7 0 0 1 2 9Z" />
           </svg>
         </span>
       </button>
+      {compact && <p className="mt-1 truncate text-center text-[10px] text-slate-400">{photo.label.split(" ")[0]}</p>}
     </div>
   );
 }

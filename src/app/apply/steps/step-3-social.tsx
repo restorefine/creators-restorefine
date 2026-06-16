@@ -73,10 +73,10 @@ function FollowerInput({ platformKey, disabled }: { platformKey: string; disable
       <input
         id={`social_${platformKey}_followers`}
         type="text"
-        inputMode="numeric"
+        inputMode="text"
         value={display}
         disabled={disabled}
-        placeholder="e.g. 1.1K"
+        placeholder="e.g. 1.1K/1.1M"
         onChange={(e) => setDisplay(e.target.value)}
         onFocus={handleFocus}
         onBlur={handleBlur}
