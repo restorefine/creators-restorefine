@@ -7,6 +7,7 @@ import { CreatorStatus } from "@/generated/prisma/client";
 import { SOCIAL_PLATFORMS } from "@/app/apply/options";
 import { PhotoGallery } from "./photo-lightbox";
 import { StarRating } from "./star-rating";
+import { DeleteButton } from "./delete-button";
 
 export const dynamic = "force-dynamic";
 
@@ -184,6 +185,11 @@ export default async function CreatorDetailPage({ params }: { params: Promise<{ 
           </button>
         </form>
       )}
+      <DeleteButton
+        creatorId={creator.id}
+        fullName={fullName}
+        className="w-full rounded-lg border border-red-200 px-3 py-2 text-sm font-semibold text-red-600 transition hover:bg-red-50"
+      />
     </>
   );
 
@@ -403,6 +409,14 @@ export default async function CreatorDetailPage({ params }: { params: Promise<{ 
               </form>
             </div>
           )}
+
+          <div className="mt-4 border-t border-slate-100 pt-4">
+            <DeleteButton
+              creatorId={creator.id}
+              fullName={fullName}
+              className="w-full rounded-lg border border-red-200 px-3 py-2 text-sm font-semibold text-red-600 transition hover:bg-red-50"
+            />
+          </div>
         </div>
       </div>
 
