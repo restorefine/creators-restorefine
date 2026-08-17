@@ -61,6 +61,12 @@ npm run dev
 - Public application form: [http://localhost:3000](http://localhost:3000)
 - Admin panel: [http://localhost:3000/admin](http://localhost:3000/admin) (redirects to login if signed out)
 
+## Supabase keepalive
+
+The app includes a Vercel Cron Job in `vercel.json` that calls `/api/keepalive` every Monday and Thursday at 00:00 UTC. The route performs a read-only `SELECT 1` through Prisma so the Supabase Postgres database receives activity without changing any data.
+
+For production, set a `CRON_SECRET` environment variable in Vercel. Vercel sends it as a bearer token for cron requests, and the route rejects mismatched requests when the variable is present.
+
 ## Project structure
 
 - `src/app/page.tsx` + `creator-application-form.tsx` — public application form
