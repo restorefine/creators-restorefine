@@ -40,6 +40,18 @@ export function Analytics() {
     }
   }, []);
 
+  const showBanner = bannerOpen && !!GA_ID && !pathname.startsWith("/admin");
+
+  // Lock page scroll while the consent overlay is up
+  useEffect(() => {
+    if (!showBanner) return;
+    const previous = document.body.style.overflow;
+    document.body.style.overflow = "hidden";
+    return () => {
+      document.body.style.overflow = previous;
+    };
+  }, [showBanner]);
+
   if (!GA_ID || pathname.startsWith("/admin")) return null;
 
   const choose = (value: Consent) => {
@@ -55,15 +67,19 @@ export function Analytics() {
   return (
     <>
       <GoogleAnalytics gaId={GA_ID} />
-      {bannerOpen && (
-        <div
-          role="dialog"
-          aria-label="Cookie consent"
-          className="fixed inset-x-0 bottom-0 z-50 border-t border-slate-200 bg-white px-4 py-4 shadow-[0_-4px_16px_rgba(0,0,0,0.06)] sm:px-6"
-        >
-          <div className="mx-auto flex max-w-5xl flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
-            <p className="text-sm text-slate-600">
-              We use analytics cookies to understand how people find and use this site. Read our{" "}
+      {showBanner && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/70 px-4 backdrop-blur-sm">
+          <div
+            role="dialog"
+            aria-modal="true"
+            aria-labelledby="cookie-consent-title"
+            className="w-full max-w-md rounded-2xl bg-white p-6 shadow-xl"
+          >
+            <h2 id="cookie-consent-title" className="text-lg font-semibold text-slate-900">
+              Can we use analytics cookies?
+            </h2>
+            <p className="mt-2 text-sm text-slate-600">
+              They help us understand how people find and use this site. You can apply either way. Read our{" "}
               <a
                 href="https://restorefine.co.uk/legal/cookies"
                 target="_blank"
@@ -74,18 +90,18 @@ export function Analytics() {
               </a>
               .
             </p>
-            <div className="flex shrink-0 gap-3">
+            <div className="mt-5 flex gap-3">
               <button
                 type="button"
                 onClick={() => choose("rejected")}
-                className="flex-1 rounded-lg border border-slate-200 px-5 py-2.5 text-sm font-semibold text-slate-700 transition hover:bg-slate-50 sm:flex-none"
+                className="flex-1 rounded-lg border border-slate-300 px-5 py-3 text-sm font-semibold text-slate-700 transition hover:bg-slate-50"
               >
                 Reject
               </button>
               <button
                 type="button"
                 onClick={() => choose("accepted")}
-                className="flex-1 rounded-lg bg-brand px-5 py-2.5 text-sm font-semibold text-white shadow-sm transition hover:bg-brand-dark sm:flex-none"
+                className="flex-1 rounded-lg bg-emerald-600 px-5 py-3 text-sm font-semibold text-white shadow-sm transition hover:bg-emerald-700"
               >
                 Accept
               </button>
