@@ -126,7 +126,7 @@ export const STEP_META: StepMeta[] = [
     title: "Where can brands find you?",
     highlight: "brands",
     description:
-      "Add your handles and follower counts. If you don't use a platform, tick N/A.",
+      "Add your handles. We'll fetch Instagram and TikTok follower counts automatically; enter the rest yourself. If you don't use a platform, tick N/A.",
   },
   {
     step: 3,

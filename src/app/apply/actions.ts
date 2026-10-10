@@ -6,6 +6,7 @@ import { getClientIp, rateLimit } from "@/lib/rate-limit";
 import { createAdminClient, CREATOR_PHOTOS_BUCKET } from "@/lib/supabase/admin";
 import { resend, EMAIL_FROM, TALENT_EMAIL } from "@/lib/email/resend";
 import { newApplicationEmail } from "@/lib/email/new-application";
+import { fetchFollowers, LOOKUP_PLATFORMS } from "@/lib/followers";
 import { SOCIAL_PLATFORMS } from "./options";
 
 const MAX_FILE_SIZE = 5 * 1024 * 1024; // 5MB
@@ -233,11 +234,24 @@ export async function submitApplication(
     return path;
   };
 
+  // Re-check counts server-side so the hidden form value can't be spoofed;
+  // keep the creator's own number if the lookup fails.
+  const verifyFollowers = () =>
+    Promise.all(
+      LOOKUP_PLATFORMS.map(async (platform) => {
+        const entry = socialPlatforms[platform];
+        if (!entry || entry.na || !entry.handle) return;
+        const count = await fetchFollowers(platform, entry.handle);
+        if (count !== null) entry.followers = count;
+      }),
+    );
+
   try {
     const [frontFacePath, sideFacePath, lifestylePath] = await Promise.all([
       uploadPhoto(frontFace as File, "front"),
       uploadPhoto(sideFace as File, "side"),
       uploadPhoto(lifestyle as File, "lifestyle"),
+      verifyFollowers(),
     ]);
 
     await prisma.creator.create({
