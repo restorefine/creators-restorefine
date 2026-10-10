@@ -42,7 +42,7 @@ const sections: { title: string; paragraphs: string[] }[] = [
     paragraphs: [
       "RestoRefine Studios collects personal and professional information from Creators for the following purposes. To evaluate applications and maintain the Network. To match Creator profiles against Client briefs and requirements. To present Creator profiles including photographs and audience data to vetted Clients when a potential opportunity arises. To communicate with Creators regarding opportunities, updates to these Terms or changes to the Network. To operate, improve and develop the RestoRefine Studios platform and services.",
       "All personal data is processed in accordance with the UK General Data Protection Regulation (UK GDPR) and the Data Protection Act 2018. RestoRefine Ltd acts as the data controller. Your data will not be sold to any third party under any circumstances. It may be shared with Clients solely for the purpose of evaluating your suitability for a specific opportunity.",
-      "You have the right at any time to request access to the personal data we hold about you, to request correction of inaccurate data, to request deletion of your data, to withdraw your consent for processing and to lodge a complaint with the Information Commissioner's Office. All requests should be directed to talent@restorefine.com and will be actioned within 30 days.",
+      "You have the right at any time to request access to the personal data we hold about you, to request correction of inaccurate data, to request deletion of your data, to withdraw your consent for processing and to lodge a complaint with the Information Commissioner's Office. All requests should be directed to hello@restorefine.com and will be actioned within 30 days.",
       "By submitting an application you give explicit and informed consent to the collection, storage, processing and sharing of your personal data as described in this clause.",
     ],
   },
@@ -137,7 +137,7 @@ const sections: { title: string; paragraphs: string[] }[] = [
   {
     title: "19. Contact",
     paragraphs: [
-      "For any questions about these Terms, to exercise your data rights or to request removal from the Network, please contact us at talent@restorefine.com or in writing to RestoRefine Ltd, 24 Fairley Street, Glasgow, G51 2SN.",
+      "For any questions about these Terms, to exercise your data rights or to request removal from the Network, please contact us at hello@restorefine.com or in writing to RestoRefine Ltd, 24 Fairley Street, Glasgow, G51 2SN.",
     ],
   },
 ];

@@ -95,11 +95,11 @@ const faqs = [
   {
     question: "Can I update my profile or leave the Network?",
     answer:
-      "Yes to both. If your follower counts change, you move to a new city or your availability changes, just email us and we will update your profile. If you want to leave the Network entirely and have your data deleted, contact us at talent@restorefine.com and we will remove everything within 30 days in line with UK GDPR.",
+      "Yes to both. If your follower counts change, you move to a new city or your availability changes, just email us and we will update your profile. If you want to leave the Network entirely and have your data deleted, contact us at hello@restorefine.com and we will remove everything within 30 days in line with UK GDPR.",
   },
   {
     question: "I have a question that is not covered here.",
-    answer: "Get in touch at talent@restorefine.com and we will come back to you. We are a small team and we do actually read and reply to every email.",
+    answer: "Get in touch at hello@restorefine.com and we will come back to you. We are a small team and we do actually read and reply to every email.",
   },
 ];
 
