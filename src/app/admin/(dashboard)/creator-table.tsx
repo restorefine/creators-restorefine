@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { formatHourlyRate } from "@/app/apply/options";
 
 const statusStyles: Record<string, string> = {
   PENDING: "bg-amber-100 text-amber-800",
@@ -20,7 +21,16 @@ export type CreatorRow = {
   thumbnailUrl: string | null;
 };
 
-export function CreatorTable({ rows, dateLabel }: { rows: CreatorRow[]; dateLabel: string }) {
+/** returnTo: the list URL (tab, filters, page) so the detail page can link straight back. */
+export function CreatorTable({
+  rows,
+  dateLabel,
+  returnTo,
+}: {
+  rows: CreatorRow[];
+  dateLabel: string;
+  returnTo: string;
+}) {
   return (
     <div className="overflow-hidden rounded-xl border border-slate-200 bg-white shadow-sm">
       <table className="w-full text-left text-sm">
@@ -39,10 +49,11 @@ export function CreatorTable({ rows, dateLabel }: { rows: CreatorRow[]; dateLabe
         <tbody className="divide-y divide-slate-100">
           {rows.map((creator) => {
             const fullName = `${creator.firstName} ${creator.lastName}`;
+            const detailHref = `/admin/${creator.id}?from=${encodeURIComponent(returnTo)}`;
             return (
-              <tr key={creator.id} className="cursor-pointer transition hover:bg-slate-50">
+              <tr key={creator.id} id={`creator-${creator.id}`} className="scroll-mt-24 cursor-pointer transition hover:bg-slate-50">
                 <td className="p-0">
-                  <Link href={`/admin/${creator.id}`} className="block px-4 py-3">
+                  <Link href={detailHref} className="block px-4 py-3">
                     {creator.thumbnailUrl ? (
                       // eslint-disable-next-line @next/next/no-img-element
                       <img
@@ -56,13 +67,13 @@ export function CreatorTable({ rows, dateLabel }: { rows: CreatorRow[]; dateLabe
                   </Link>
                 </td>
                 <td className="p-0 font-medium text-slate-900">
-                  <Link href={`/admin/${creator.id}`} className="block px-4 py-3">
+                  <Link href={detailHref} className="block px-4 py-3">
                     {fullName}
                   </Link>
                 </td>
                 {/* Star rating (read-only in table) */}
                 <td className="p-0">
-                  <Link href={`/admin/${creator.id}`} className="block px-4 py-3">
+                  <Link href={detailHref} className="block px-4 py-3">
                     {creator.adminRating ? (
                       <span className="flex items-center gap-0.5">
                         {[1, 2, 3, 4, 5].map((s) => (
@@ -88,22 +99,22 @@ export function CreatorTable({ rows, dateLabel }: { rows: CreatorRow[]; dateLabe
                   </Link>
                 </td>
                 <td className="p-0 text-slate-600">
-                  <Link href={`/admin/${creator.id}`} className="block px-4 py-3">
-                    {creator.expectedHourlyRate != null ? `£${creator.expectedHourlyRate}/hr` : "—"}
+                  <Link href={detailHref} className="block px-4 py-3">
+                    {formatHourlyRate(creator.expectedHourlyRate) ?? "—"}
                   </Link>
                 </td>
                 <td className="p-0 text-slate-600">
-                  <Link href={`/admin/${creator.id}`} className="block px-4 py-3">
+                  <Link href={detailHref} className="block px-4 py-3">
                     {creator.primaryNiche}
                   </Link>
                 </td>
                 <td className="p-0 text-slate-600">
-                  <Link href={`/admin/${creator.id}`} className="block px-4 py-3">
+                  <Link href={detailHref} className="block px-4 py-3">
                     {creator.city}, {creator.country}
                   </Link>
                 </td>
                 <td className="p-0">
-                  <Link href={`/admin/${creator.id}`} className="block px-4 py-3">
+                  <Link href={detailHref} className="block px-4 py-3">
                     <span
                       className={`inline-flex rounded-full px-2 py-1 text-xs font-medium ${statusStyles[creator.status]}`}
                     >
@@ -112,7 +123,7 @@ export function CreatorTable({ rows, dateLabel }: { rows: CreatorRow[]; dateLabe
                   </Link>
                 </td>
                 <td className="p-0 text-slate-500">
-                  <Link href={`/admin/${creator.id}`} className="block px-4 py-3">
+                  <Link href={detailHref} className="block px-4 py-3">
                     {creator.date.toLocaleDateString("en-GB", {
                       day: "2-digit",
                       month: "short",

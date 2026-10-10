@@ -7,7 +7,7 @@ import {
   NICHES,
   SECONDARY_NICHES,
 } from "../options";
-import { ChipCheckbox, ChipRadio, FieldError, FieldLabel, TextInput } from "../form-ui";
+import { ChipCheckbox, ChipRadio, FieldError, FieldLabel, TextField } from "../form-ui";
 
 export function Step4Content({ errors }: { errors: Record<string, string> }) {
   const [primaryNiche, setPrimaryNiche] = useState("");
@@ -24,12 +24,8 @@ export function Step4Content({ errors }: { errors: Record<string, string> }) {
         <FieldError message={errors.primaryNiche} />
         {primaryNiche === "Other" && (
           <div className="mt-3">
-            <TextInput
-              id="primaryNicheOther"
-              name="primaryNicheOther"
-              type="text"
-              placeholder="Tell us your niche"
-            />
+            <TextField label="Your niche" id="primaryNicheOther" name="primaryNicheOther" type="text" />
+            <FieldError message={errors.primaryNicheOther} />
           </div>
         )}
       </div>
@@ -62,12 +58,8 @@ export function Step4Content({ errors }: { errors: Record<string, string> }) {
         </div>
         {styleOther && (
           <div className="mt-3">
-            <TextInput
-              id="contentStylesOther"
-              name="contentStylesOther"
-              type="text"
-              placeholder="Tell us your style"
-            />
+            <TextField label="Your style" id="contentStylesOther" name="contentStylesOther" type="text" />
+            <FieldError message={errors.contentStylesOther} />
           </div>
         )}
       </div>
@@ -91,12 +83,8 @@ export function Step4Content({ errors }: { errors: Record<string, string> }) {
         </div>
         {formatOther && (
           <div className="mt-3">
-            <TextInput
-              id="contentFormatsOther"
-              name="contentFormatsOther"
-              type="text"
-              placeholder="Tell us your format"
-            />
+            <TextField label="Your format" id="contentFormatsOther" name="contentFormatsOther" type="text" />
+            <FieldError message={errors.contentFormatsOther} />
           </div>
         )}
       </div>
@@ -107,9 +95,18 @@ export function Step4Content({ errors }: { errors: Record<string, string> }) {
           Share links to content that best represents you.
         </p>
         <div className="mt-2 space-y-3">
-          <TextInput id="contentLink1" name="contentLink1" type="url" placeholder="https:// (optional)" />
-          <TextInput id="contentLink2" name="contentLink2" type="url" placeholder="https:// (optional)" />
-          <TextInput id="contentLink3" name="contentLink3" type="url" placeholder="https:// (optional)" />
+          <div>
+            <TextField label="Link 1" id="contentLink1" name="contentLink1" type="url" inputMode="url" placeholder="instagram.com/p/..." />
+            <FieldError message={errors.contentLink1} />
+          </div>
+          <div>
+            <TextField label="Link 2" id="contentLink2" name="contentLink2" type="url" inputMode="url" placeholder="instagram.com/p/..." />
+            <FieldError message={errors.contentLink2} />
+          </div>
+          <div>
+            <TextField label="Link 3" id="contentLink3" name="contentLink3" type="url" inputMode="url" placeholder="instagram.com/p/..." />
+            <FieldError message={errors.contentLink3} />
+          </div>
         </div>
       </div>
     </div>

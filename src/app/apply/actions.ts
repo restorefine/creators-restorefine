@@ -7,7 +7,8 @@ import { createAdminClient, CREATOR_PHOTOS_BUCKET } from "@/lib/supabase/admin";
 import { resend, EMAIL_FROM, TALENT_EMAIL } from "@/lib/email/resend";
 import { newApplicationEmail } from "@/lib/email/new-application";
 import { fetchFollowers, LOOKUP_PLATFORMS } from "@/lib/followers";
-import { SOCIAL_PLATFORMS } from "./options";
+import { HOURLY_RATE_RANGES, SOCIAL_PLATFORMS } from "./options";
+import { normaliseUrl, validateAllFields } from "./validation";
 
 const MAX_FILE_SIZE = 5 * 1024 * 1024; // 5MB
 const ACCEPTED_TYPES = [
@@ -78,21 +79,20 @@ export async function submitApplication(
     };
   }
 
-  const fieldErrors: Record<string, string> = {};
+  const fieldErrors: Record<string, string> = validateAllFields(formData);
 
-  // Step 1 - Photos
+  // Photos - front and side required, lifestyle optional
   const frontFace = formData.get("frontFace") as File | null;
   const sideFace = formData.get("sideFace") as File | null;
   const lifestyle = formData.get("lifestyle") as File | null;
   validateImage(frontFace, "frontFace", fieldErrors);
   validateImage(sideFace, "sideFace", fieldErrors);
-  validateImage(lifestyle, "lifestyle", fieldErrors);
+  if (lifestyle && lifestyle.size > 0) validateImage(lifestyle, "lifestyle", fieldErrors);
 
   // Step 2 - About you
   const firstName = str(formData, "firstName");
   const lastName = str(formData, "lastName");
   const email = str(formData, "email");
-  const confirmEmail = str(formData, "confirmEmail");
   const phone = str(formData, "phone");
   const city = str(formData, "city");
   const country = str(formData, "country");
@@ -100,21 +100,6 @@ export async function submitApplication(
   const genderIdentity = optionalStr(formData, "genderIdentity");
   const languages = optionalStr(formData, "languages");
 
-  if (!firstName) fieldErrors.firstName = "First name is required.";
-  if (!lastName) fieldErrors.lastName = "Last name is required.";
-  if (!email || !/^\S+@\S+\.\S+$/.test(email)) {
-    fieldErrors.email = "Enter a valid email address.";
-  }
-  if (!confirmEmail) {
-    fieldErrors.confirmEmail = "Please confirm your email.";
-  } else if (confirmEmail !== email) {
-    fieldErrors.confirmEmail = "Emails do not match.";
-  }
-  if (!phone) fieldErrors.phone = "Phone number is required.";
-  if (!city) fieldErrors.city = "City is required.";
-  if (!country) fieldErrors.country = "Please select a country.";
-
-  if (!ageRange) fieldErrors.ageRange = "Please select your age range.";
 
   // Step 3 - Social platforms
   const socialPlatforms: Record<string, { na: boolean; handle: string | null; followers: number | null }> = {};
@@ -129,7 +114,7 @@ export async function submitApplication(
       followers: na ? null : (followers !== null && !Number.isNaN(followers) ? followers : null),
     };
   }
-  const website = optionalStr(formData, "website");
+  const website = normaliseUrl(optionalStr(formData, "website"));
 
   // Step 4 - Content & niche
   const primaryNiche = str(formData, "primaryNiche");
@@ -143,15 +128,11 @@ export async function submitApplication(
     str(formData, "contentLink1"),
     str(formData, "contentLink2"),
     str(formData, "contentLink3"),
-  ].filter(Boolean);
+  ]
+    .filter(Boolean)
+    .map((link) => normaliseUrl(link)!);
 
-  if (!primaryNiche) {
-    fieldErrors.primaryNiche = "Please select your primary niche.";
-  } else if (primaryNiche === "Other" && !primaryNicheOther) {
-    fieldErrors.primaryNiche = "Please describe your niche.";
-  }
-
-  // Step 5 - Audience
+  // Step 5 - Audience (optional; stored as "" when skipped)
   const audienceAgeGroup = str(formData, "audienceAgeGroup");
   const audienceGenderSplit = str(formData, "audienceGenderSplit");
   const audienceTopCountries = str(formData, "audienceTopCountries");
@@ -159,9 +140,6 @@ export async function submitApplication(
   const audienceInterests = formData.getAll("audienceInterests") as string[];
   const audienceInterestsOther = optionalStr(formData, "audienceInterestsOther");
 
-  if (!audienceAgeGroup) fieldErrors.audienceAgeGroup = "Please select an age group.";
-  if (!audienceGenderSplit) fieldErrors.audienceGenderSplit = "Please select a gender split.";
-  if (!audienceTopCountries) fieldErrors.audienceTopCountries = "Please list your top countries.";
 
   // Step 6 - Experience & availability
   const previousBrandsRaw = str(formData, "previousBrands");
@@ -175,39 +153,18 @@ export async function submitApplication(
   const agentName = optionalStr(formData, "agentName");
   const agentContact = optionalStr(formData, "agentContact");
 
-  let expectedHourlyRate: number | null = null;
-  if (!expectedHourlyRateRaw) {
-    fieldErrors.expectedHourlyRate = "Please enter your expected hourly rate.";
-  } else {
-    expectedHourlyRate = Number(expectedHourlyRateRaw);
-    if (Number.isNaN(expectedHourlyRate) || expectedHourlyRate < 0) {
-      fieldErrors.expectedHourlyRate = "Enter a valid amount.";
-      expectedHourlyRate = null;
-    }
-  }
-
-  let hasAgent: boolean | null = null;
-  if (!hasAgentRaw) {
-    fieldErrors.hasAgent = "Please select an option.";
-  } else {
-    hasAgent = hasAgentRaw === "Yes";
-    if (hasAgent) {
-      if (!agentName) fieldErrors.agentName = "Agent name is required.";
-      if (!agentContact) fieldErrors.agentContact = "Agent contact is required.";
-    }
-  }
+  const expectedHourlyRate =
+    HOURLY_RATE_RANGES.find((range) => range.label === expectedHourlyRateRaw)?.min ?? null;
+  const hasAgent = hasAgentRaw ? hasAgentRaw === "Yes" : null;
 
   // Step 7 - Final details
   const bio = str(formData, "bio");
-  const portfolioLink = optionalStr(formData, "portfolioLink");
+  const portfolioLink = normaliseUrl(optionalStr(formData, "portfolioLink"));
   const vatStatus = str(formData, "vatStatus");
   const invoicingAs = str(formData, "invoicingAs");
   const additionalInfo = optionalStr(formData, "additionalInfo");
   const termsAccepted = formData.get("termsAccepted") === "true";
 
-  if (!bio) fieldErrors.bio = "Please add a short bio.";
-  if (!vatStatus) fieldErrors.vatStatus = "Please select an option.";
-  if (!invoicingAs) fieldErrors.invoicingAs = "Please select an option.";
   if (!termsAccepted) fieldErrors.termsAccepted = "You must accept the terms to continue.";
 
   if (Object.keys(fieldErrors).length > 0) {
@@ -250,7 +207,7 @@ export async function submitApplication(
     const [frontFacePath, sideFacePath, lifestylePath] = await Promise.all([
       uploadPhoto(frontFace as File, "front"),
       uploadPhoto(sideFace as File, "side"),
-      uploadPhoto(lifestyle as File, "lifestyle"),
+      lifestyle && lifestyle.size > 0 ? uploadPhoto(lifestyle, "lifestyle") : null,
       verifyFollowers(),
     ]);
 

@@ -101,6 +101,22 @@ export const AVAILABILITY_OPTIONS = [
 
 export const VAT_OPTIONS = ["Yes", "No", "Not sure"];
 
+// Stored as the range's lower bound in expectedHourlyRate so admin can sort.
+export const HOURLY_RATE_RANGES = [
+  { label: "Under £15", min: 0 },
+  { label: "£15–25", min: 15 },
+  { label: "£25–40", min: 25 },
+  { label: "£40–60", min: 40 },
+  { label: "£60–100", min: 60 },
+  { label: "£100+", min: 100 },
+] as const;
+
+/** Range label for new applications; older typed amounts show as £x/hr. */
+export function formatHourlyRate(rate: number | null) {
+  if (rate == null) return null;
+  return HOURLY_RATE_RANGES.find((range) => range.min === rate)?.label ?? `£${rate}/hr`;
+}
+
 export const INVOICING_OPTIONS = ["Sole trader", "Limited company", "Neither yet"];
 
 type StepMeta = {
@@ -118,50 +134,45 @@ export const STEP_META: StepMeta[] = [
     label: "About you",
     title: "Tell us about yourself",
     highlight: "yourself",
-    description: "We use these details to verify your application and stay in touch.",
+    description: "Your contact details and where brands can find you online.",
   },
   {
     step: 2,
-    label: "Social platforms",
-    title: "Where can brands find you?",
-    highlight: "brands",
-    description:
-      "Add your handles. We'll fetch Instagram and TikTok follower counts automatically; enter the rest yourself. If you don't use a platform, tick N/A.",
+    label: "Your content",
+    title: "What kind of content do you create?",
+    highlight: "content",
+    description: "Help us match you with brands that fit your style, niche and audience.",
   },
   {
     step: 3,
-    label: "Content & niche",
-    title: "What kind of content do you create?",
-    highlight: "content",
-    description: "Help us match you with brands that fit your style and niche.",
+    label: "Experience",
+    title: "Experience & final details",
+    highlight: "final details",
+    description: "What you've done before, what you're open to, and how you invoice.",
   },
   {
     step: 4,
-    label: "Your audience",
-    title: "Tell us about your audience",
-    highlight: "audience",
-    description: "Brands want to know who's watching, reading or listening.",
-  },
-  {
-    step: 5,
-    label: "Experience",
-    title: "Experience & availability",
-    highlight: "availability",
-    description: "Let us know what you've done before and what you're open to.",
-  },
-  {
-    step: 6,
-    label: "Final details",
-    title: "Just a few final details",
-    highlight: "final details",
-    description: "Add your bio, VAT status and invoicing details before we move to photos.",
-  },
-  {
-    step: 7,
     label: "Your photos",
     title: "One last thing: your photos",
     highlight: "photos",
-    description: "Almost done! Upload three images so brands can get a feel for your look and content style.",
+    description: "Almost done! Upload a front headshot and side profile. A lifestyle shot is optional but helps brands get a feel for your style.",
     note: "Use a plain or neutral background for headshots. Good natural lighting works best. Your lifestyle shot should reflect your usual content style.",
   },
 ];
+
+// Sub-sections shown inside the merged steps above.
+export const SECTION_META = {
+  social: {
+    title: "Social platforms",
+    description:
+      "Add your handles. We'll fetch Instagram and TikTok follower counts automatically; enter the rest yourself. If you don't use a platform, tick N/A.",
+  },
+  audience: {
+    title: "Your audience",
+    description: "All optional, but it helps brands understand who's watching.",
+  },
+  finalDetails: {
+    title: "Final details",
+    description: "Your bio, VAT status and invoicing details.",
+  },
+};

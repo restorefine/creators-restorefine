@@ -10,17 +10,18 @@ export default async function ApplyPage() {
   }
 
   return (
-    <main className="flex flex-1 items-center justify-center bg-white px-4 py-12">
+    <main className="flex flex-1 justify-center bg-white px-4 pb-4 pt-5 sm:items-center sm:py-12">
       <div className="w-full max-w-3xl">
-        <div className="mb-6 flex justify-center">
+        <div className="mb-4 flex justify-center sm:mb-6">
           {/* eslint-disable-next-line @next/next/no-img-element */}
           <img
             src="/fonts/restorefine-logoblack.svg"
             alt="RestoRefine"
-            className="h-12 w-auto"
+            className="h-8 w-auto sm:h-12"
           />
         </div>
-        <div className="rounded-2xl border border-slate-200 bg-white p-6 shadow-sm sm:p-8">
+        {/* Card chrome only on larger screens; phones get the full width */}
+        <div className="sm:rounded-2xl sm:border sm:border-slate-200 sm:bg-white sm:p-8 sm:shadow-sm">
           <CreatorApplicationForm />
         </div>
       </div>

@@ -4,7 +4,7 @@ import { prisma } from "@/lib/prisma";
 import { getSignedPhotoUrl } from "@/lib/supabase/admin";
 import { updateCreatorStatus } from "../../actions";
 import { CreatorStatus } from "@/generated/prisma/client";
-import { SOCIAL_PLATFORMS } from "@/app/apply/options";
+import { formatHourlyRate, SOCIAL_PLATFORMS } from "@/app/apply/options";
 import { PhotoGallery } from "./photo-lightbox";
 import { StarRating } from "./star-rating";
 import { DeleteButton } from "./delete-button";
@@ -115,8 +115,18 @@ function NavArrow({ href, direction, label }: { href: string; direction: "prev" 
   );
 }
 
-export default async function CreatorDetailPage({ params }: { params: Promise<{ id: string }> }) {
+export default async function CreatorDetailPage({
+  params,
+  searchParams,
+}: {
+  params: Promise<{ id: string }>;
+  searchParams: Promise<{ from?: string }>;
+}) {
   const { id } = await params;
+  const { from } = await searchParams;
+  // Only accept internal admin paths so "from" can't redirect elsewhere.
+  const backTo = from?.startsWith("/admin") && !from.startsWith("//") ? from : "/admin";
+  const withFrom = (path: string) => (from ? `${path}?from=${encodeURIComponent(backTo)}` : path);
 
   const [creator, allCreators] = await Promise.all([
     prisma.creator.findUnique({ where: { id } }),
@@ -132,7 +142,7 @@ export default async function CreatorDetailPage({ params }: { params: Promise<{ 
   const [frontFaceUrl, sideFaceUrl, lifestyleUrl] = await Promise.all([
     getSignedPhotoUrl(creator.frontFacePath),
     getSignedPhotoUrl(creator.sideFacePath),
-    getSignedPhotoUrl(creator.lifestylePath),
+    creator.lifestylePath ? getSignedPhotoUrl(creator.lifestylePath) : null,
   ]);
 
   const fullName = `${creator.firstName} ${creator.lastName}`;
@@ -289,7 +299,7 @@ export default async function CreatorDetailPage({ params }: { params: Promise<{ 
             <dt className="text-xs font-semibold uppercase tracking-wide text-slate-500">Available for</dt>
             <dd className="mt-1"><ChipList items={creator.availability} /></dd>
           </div>
-          <Field label="Expected hourly rate" value={creator.expectedHourlyRate != null ? `£${creator.expectedHourlyRate}/hr` : null} />
+          <Field label="Expected hourly rate" value={formatHourlyRate(creator.expectedHourlyRate)} />
           <Field label="Brands/industries excluded" value={creator.brandsExcluded} />
           <Field label="Current brand exclusivity" value={creator.brandExclusivity} />
           <Field label="Represented by agent" value={creator.hasAgent ? "Yes" : "No"} />
@@ -330,10 +340,10 @@ export default async function CreatorDetailPage({ params }: { params: Promise<{ 
   return (
     <div>
       {/* Fixed nav arrows — desktop only */}
-      {prevId && <NavArrow href={`/admin/${prevId}`} direction="prev" label="Previous applicant" />}
-      {nextId && <NavArrow href={`/admin/${nextId}`} direction="next" label="Next applicant" />}
+      {prevId && <NavArrow href={withFrom(`/admin/${prevId}`)} direction="prev" label="Previous applicant" />}
+      {nextId && <NavArrow href={withFrom(`/admin/${nextId}`)} direction="next" label="Next applicant" />}
 
-      <Link href="/admin" className="text-sm font-medium text-slate-500 hover:text-slate-700">
+      <Link href={`${backTo}#creator-${id}`} className="text-sm font-medium text-slate-500 hover:text-slate-700">
         ← Back to applications
       </Link>
 

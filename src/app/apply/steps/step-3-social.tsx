@@ -4,7 +4,7 @@ import { useRef, useState } from "react";
 import { isLookupPlatform, normaliseHandle } from "@/lib/followers";
 import { lookupFollowers } from "../followers-actions";
 import { SOCIAL_PLATFORMS } from "../options";
-import { FieldLabel, TextInput } from "../form-ui";
+import { FieldError, FieldShell, TextField, fieldInputClassName } from "../form-ui";
 
 // ---------------------------------------------------------------------------
 // Follower count formatting helpers
@@ -68,26 +68,24 @@ function FollowerInput({
     if (!readOnly) setDraft(rawValue !== null ? String(rawValue) : "");
   };
 
-  const inputClasses =
-    "mt-1 block w-full rounded-lg border border-slate-300 px-3 py-2 text-slate-900 shadow-sm focus:border-brand focus:outline-none focus:ring-1 focus:ring-brand";
-
   return (
     <>
       {/* Visible display input — no `name` so FormData ignores it */}
-      <input
-        id={`social_${platformKey}_followers`}
-        type="text"
-        inputMode="text"
-        value={display}
-        disabled={disabled}
-        readOnly={readOnly}
-        placeholder="e.g. 1.1K/1.1M"
-        onChange={(e) => setDraft(e.target.value)}
-        onFocus={handleFocus}
-        onBlur={handleBlur}
-        className={`${inputClasses} ${disabled || readOnly ? "bg-slate-50 text-slate-500" : ""}`}
-        aria-label="Follower count"
-      />
+      <FieldShell label="Followers" htmlFor={`social_${platformKey}_followers`} disabled={disabled || readOnly}>
+        <input
+          id={`social_${platformKey}_followers`}
+          type="text"
+          inputMode="decimal"
+          value={display}
+          disabled={disabled}
+          readOnly={readOnly}
+          placeholder="e.g. 1.2K"
+          onChange={(e) => setDraft(e.target.value.replace(/[^\d.,kKmM]/g, ""))}
+          onFocus={handleFocus}
+          onBlur={handleBlur}
+          className={fieldInputClassName}
+        />
+      </FieldShell>
       {/* Hidden input carries the raw integer for the server action */}
       <input
         type="hidden"
@@ -103,7 +101,7 @@ function FollowerInput({
 // ---------------------------------------------------------------------------
 type LookupStatus = "idle" | "checking" | "found" | "not_found";
 
-function PlatformRow({ platformKey, label }: { platformKey: string; label: string }) {
+function PlatformRow({ platformKey, label, error }: { platformKey: string; label: string; error?: string }) {
   const [isNa, setIsNa] = useState(false);
   const [followers, setFollowers] = useState<number | null>(null);
   const [status, setStatus] = useState<LookupStatus>("idle");
@@ -135,11 +133,13 @@ function PlatformRow({ platformKey, label }: { platformKey: string; label: strin
   };
 
   return (
-    <div className="grid grid-cols-1 gap-3 rounded-xl border border-slate-200 p-4 sm:grid-cols-[1fr_2fr_1fr_auto] sm:items-end">
-      <div className="text-sm font-semibold text-slate-900 sm:pb-2">{label}</div>
-      <div>
-        <FieldLabel htmlFor={`social_${platformKey}_handle`}>Handle / name</FieldLabel>
-        <TextInput
+    // Phones: platform + N/A on top, handle and followers side by side below.
+    // Ticking N/A collapses the row on phones to save scrolling.
+    <div className="grid grid-cols-[3fr_2fr] items-center gap-x-3 gap-y-2 rounded-xl border border-slate-200 p-3 sm:grid-cols-[1fr_2fr_1fr_auto] sm:items-end sm:gap-3 sm:p-4">
+      <div className="order-1 text-sm font-semibold text-slate-900 sm:pb-2">{label}</div>
+      <div className={`order-3 self-start sm:order-2 ${isNa ? "max-sm:hidden" : ""}`}>
+        <TextField
+          label="Handle"
           id={`social_${platformKey}_handle`}
           name={`social_${platformKey}_handle`}
           type="text"
@@ -147,11 +147,10 @@ function PlatformRow({ platformKey, label }: { platformKey: string; label: strin
           placeholder="@username"
           onChange={handleHandleChange}
           onBlur={(e) => handleHandleBlur(e.target.value)}
-          className={isNa ? "bg-slate-50 text-slate-400" : ""}
         />
+        <FieldError message={error} />
       </div>
-      <div>
-        <FieldLabel htmlFor={`social_${platformKey}_followers`}>Followers</FieldLabel>
+      <div className={`order-4 self-start sm:order-3 ${isNa ? "max-sm:hidden" : ""}`}>
         <FollowerInput
           platformKey={platformKey}
           disabled={isNa || status === "checking"}
@@ -160,7 +159,7 @@ function PlatformRow({ platformKey, label }: { platformKey: string; label: strin
           onRawValueChange={setFollowers}
         />
       </div>
-      <label className="flex items-center gap-2 pb-2 text-sm text-slate-600 sm:justify-self-end">
+      <label className="order-2 flex items-center gap-2 justify-self-end text-sm text-slate-600 sm:order-4 sm:pb-2">
         <input
           type="checkbox"
           name={`social_${platformKey}_na`}
@@ -172,7 +171,7 @@ function PlatformRow({ platformKey, label }: { platformKey: string; label: strin
       </label>
       {canLookup && !isNa && status !== "idle" && (
         <p
-          className={`text-xs sm:col-span-4 ${
+          className={`order-5 col-span-2 text-xs sm:col-span-4 ${
             status === "found" ? "text-emerald-600" : status === "checking" ? "text-slate-500" : "text-amber-600"
           }`}
         >
@@ -188,18 +187,16 @@ function PlatformRow({ platformKey, label }: { platformKey: string; label: strin
 // ---------------------------------------------------------------------------
 // Step
 // ---------------------------------------------------------------------------
-export function Step3Social() {
+export function Step3Social({ errors }: { errors: Record<string, string> }) {
   return (
     <div className="space-y-4">
       {SOCIAL_PLATFORMS.map(({ key, label }) => (
-        <PlatformRow key={key} platformKey={key} label={label} />
+        <PlatformRow key={key} platformKey={key} label={label} error={errors[`social_${key}_handle`]} />
       ))}
 
       <div>
-        <FieldLabel htmlFor="website" optional>
-          Personal website or blog
-        </FieldLabel>
-        <TextInput id="website" name="website" type="url" placeholder="https://" />
+        <TextField label="Personal website or blog" optional id="website" name="website" type="url" inputMode="url" placeholder="yoursite.com" />
+        <FieldError message={errors.website} />
       </div>
     </div>
   );

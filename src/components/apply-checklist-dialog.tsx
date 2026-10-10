@@ -7,7 +7,7 @@ import { ANALYTICS_EVENTS, trackEvent } from "@/lib/analytics";
 
 const CHECKLIST_ITEMS = [
   "A front headshot and side profile photo",
-  "A lifestyle or content shot that shows your aesthetic",
+  "Optional: a lifestyle or content shot that shows your aesthetic",
   "Your social handles and approximate follower counts",
   "A short 2 to 3 sentence bio about what you create",
 ];

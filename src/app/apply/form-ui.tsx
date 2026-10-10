@@ -99,7 +99,11 @@ async function compressImage(file: File): Promise<File> {
 
 export function FieldError({ message }: { message?: string }) {
   if (!message) return null;
-  return <p className="mt-1 text-sm text-red-600">{message}</p>;
+  return (
+    <p data-field-error className="mt-1 text-sm text-red-600">
+      {message}
+    </p>
+  );
 }
 
 export function FieldLabel({
@@ -114,16 +118,68 @@ export function FieldLabel({
   return (
     <label htmlFor={htmlFor} className="block text-sm font-medium text-slate-900">
       {children}
-      {optional && <span className="text-slate-400"> (optional)</span>}
+      {optional && <span className="font-normal text-slate-400"> · optional</span>}
     </label>
   );
 }
 
+// Radius scale: fields, buttons and cards are rounded-xl; choice chips are full pills.
 const inputClasses =
-  "mt-1 block w-full rounded-lg border border-slate-300 px-3 py-2 text-slate-900 shadow-sm focus:border-brand focus:outline-none focus:ring-1 focus:ring-brand";
+  "mt-1 block w-full rounded-xl border border-slate-200 bg-white px-3.5 py-3 text-base text-slate-900 transition-[border-color,box-shadow] placeholder:text-slate-400 hover:border-slate-300 focus:border-brand focus:outline-none focus:ring-4 focus:ring-brand/10 sm:py-2.5";
 
-export function TextInput(props: InputHTMLAttributes<HTMLInputElement>) {
-  return <input {...props} className={`${inputClasses} ${props.className ?? ""}`} />;
+// Bordered box with the label inside it; turns red when followed by a field error.
+const fieldShellClasses =
+  "block cursor-text rounded-xl border border-slate-200 bg-white px-3.5 pb-2 pt-2.5 transition-[border-color,box-shadow] hover:border-slate-300 focus-within:border-brand focus-within:ring-4 focus-within:ring-brand/10 [&:has(+[data-field-error])]:border-red-400 [&:has(+[data-field-error])]:ring-red-100";
+
+const fieldInnerClasses =
+  "mt-0.5 block w-full bg-transparent p-0 text-base text-slate-900 placeholder:text-slate-400 focus:outline-none disabled:text-slate-400";
+
+function InsetLabel({ label, optional }: { label: ReactNode; optional?: boolean }) {
+  return (
+    <span className="block text-xs font-medium text-slate-500">
+      {label}
+      {optional && <span className="font-normal text-slate-400"> · optional</span>}
+    </span>
+  );
+}
+
+/** Inset-label box for custom inputs; give the input `fieldInputClassName`. */
+export function FieldShell({
+  label,
+  optional,
+  htmlFor,
+  disabled,
+  className,
+  children,
+}: {
+  label: ReactNode;
+  optional?: boolean;
+  htmlFor?: string;
+  disabled?: boolean;
+  className?: string;
+  children: ReactNode;
+}) {
+  return (
+    <label htmlFor={htmlFor} className={`${fieldShellClasses} ${disabled ? "bg-slate-50" : ""} ${className ?? ""}`}>
+      <InsetLabel label={label} optional={optional} />
+      {children}
+    </label>
+  );
+}
+
+export const fieldInputClassName = fieldInnerClasses;
+
+export function TextField({
+  label,
+  optional,
+  className,
+  ...props
+}: InputHTMLAttributes<HTMLInputElement> & { label: ReactNode; optional?: boolean }) {
+  return (
+    <FieldShell label={label} optional={optional} htmlFor={props.id} disabled={props.disabled} className={className}>
+      <input enterKeyHint="next" {...props} className={fieldInnerClasses} />
+    </FieldShell>
+  );
 }
 
 export function TextAreaField({
@@ -133,6 +189,8 @@ export function TextAreaField({
   maxLength,
   defaultValue,
   placeholder,
+  label,
+  optional,
 }: {
   id: string;
   name: string;
@@ -140,62 +198,77 @@ export function TextAreaField({
   maxLength?: number;
   defaultValue?: string;
   placeholder?: string;
+  label?: ReactNode;
+  optional?: boolean;
 }) {
   const [length, setLength] = useState(defaultValue?.length ?? 0);
 
+  const counter = maxLength && (
+    <p className="mt-1 text-right text-xs text-slate-400">
+      {length}/{maxLength}
+    </p>
+  );
+
+  const textarea = (
+    <textarea
+      id={id}
+      name={name}
+      rows={rows}
+      maxLength={maxLength}
+      defaultValue={defaultValue}
+      placeholder={placeholder}
+      onChange={(e) => setLength(e.target.value.length)}
+      className={label ? `${fieldInnerClasses} resize-none` : inputClasses}
+    />
+  );
+
+  if (!label) {
+    return (
+      <div>
+        {textarea}
+        {counter}
+      </div>
+    );
+  }
+
   return (
-    <div>
-      <textarea
-        id={id}
-        name={name}
-        rows={rows}
-        maxLength={maxLength}
-        defaultValue={defaultValue}
-        placeholder={placeholder}
-        onChange={(e) => setLength(e.target.value.length)}
-        className={inputClasses}
-      />
-      {maxLength && (
-        <p className="mt-1 text-right text-xs text-slate-400">
-          {length}/{maxLength}
-        </p>
-      )}
-    </div>
+    <label htmlFor={id} className={fieldShellClasses}>
+      <InsetLabel label={label} optional={optional} />
+      {textarea}
+      {counter}
+    </label>
   );
 }
 
+// Single-choice field rendered as tap-to-select chips (faster than a
+// dropdown on mobile). Submits like a <select> via a hidden radio group.
 export function SelectInput({
   id,
   name,
   defaultValue,
   options,
-  placeholder,
   onChange,
 }: {
   id: string;
   name: string;
   defaultValue?: string;
   options: readonly string[];
-  placeholder?: string;
   onChange?: (value: string) => void;
 }) {
+  const [value, setValue] = useState(defaultValue ?? "");
+
   return (
-    <select
-      id={id}
-      name={name}
-      defaultValue={defaultValue ?? ""}
-      onChange={(e) => onChange?.(e.target.value)}
-      className={inputClasses}
-    >
-      <option value="" disabled>
-        {placeholder ?? "Select…"}
-      </option>
-      {options.map((option) => (
-        <option key={option} value={option}>
-          {option}
-        </option>
-      ))}
-    </select>
+    <div id={id} role="radiogroup" className="mt-1">
+      <ChipRadio
+        name={name}
+        options={options}
+        value={value}
+        onChange={(next) => {
+          setValue(next);
+          onChange?.(next);
+        }}
+      />
+    </div>
   );
 }
 
@@ -239,7 +312,7 @@ export function ChipRadio({
         return (
           <label
             key={option}
-            className={`cursor-pointer rounded-full border px-3 py-1.5 text-sm font-medium transition ${
+            className={`cursor-pointer select-none rounded-full border px-3.5 py-2 text-sm font-medium transition active:scale-[0.97] sm:px-3 sm:py-1.5 ${
               checked
                 ? "border-brand bg-brand text-white"
                 : "border-slate-300 bg-white text-slate-700 hover:border-brand"
@@ -279,7 +352,7 @@ export function ChipCheckbox({
 
   return (
     <label
-      className={`cursor-pointer rounded-full border px-3 py-1.5 text-sm font-medium transition ${
+      className={`cursor-pointer select-none rounded-full border px-3.5 py-2 text-sm font-medium transition active:scale-[0.97] sm:px-3 sm:py-1.5 ${
         isChecked
           ? "border-brand bg-brand text-white"
           : "border-slate-300 bg-white text-slate-700 hover:border-brand"
@@ -298,28 +371,6 @@ export function ChipCheckbox({
         className="sr-only"
       />
       {option}
-    </label>
-  );
-}
-
-export function CheckboxRow({
-  name,
-  value,
-  label,
-}: {
-  name: string;
-  value: string;
-  label: string;
-}) {
-  return (
-    <label className="flex items-center gap-2 rounded-lg border border-slate-200 px-3 py-2 text-sm text-slate-700 transition hover:border-brand">
-      <input
-        type="checkbox"
-        name={name}
-        value={value}
-        className="h-4 w-4 rounded border-slate-300 text-brand focus:ring-brand"
-      />
-      {label}
     </label>
   );
 }
@@ -364,6 +415,7 @@ export function TagInput({
       </div>
       <div className="mt-2 flex gap-2">
         <input
+          id={`${name}_entry`}
           type="text"
           value={draft}
           onChange={(e) => setDraft(e.target.value)}
@@ -379,7 +431,7 @@ export function TagInput({
         <button
           type="button"
           onClick={addTag}
-          className="mt-1 rounded-lg border border-slate-300 px-4 py-2 text-sm font-medium text-slate-700 transition hover:border-brand hover:text-brand"
+          className="mt-1 shrink-0 rounded-xl border border-slate-200 px-4 text-sm font-medium text-slate-700 transition hover:border-brand hover:text-brand active:scale-[0.98]"
         >
           Add
         </button>
@@ -394,11 +446,15 @@ export function PhotoUpload({
   label,
   helpText,
   error,
+  className,
+  aspectClassName = "aspect-[4/5]",
 }: {
   name: string;
   label: string;
   helpText: string;
   error?: string;
+  className?: string;
+  aspectClassName?: string;
 }) {
   const [preview, setPreview] = useState<string | null>(null);
   const [compressStatus, setCompressStatus] = useState<"idle" | "compressing" | "done" | "error">("idle");
@@ -458,10 +514,10 @@ export function PhotoUpload({
   };
 
   return (
-    <div>
+    <div className={className}>
       <div
         onClick={() => inputRef.current?.click()}
-        className={`relative flex aspect-[4/5] w-full cursor-pointer flex-col items-center justify-center overflow-hidden rounded-xl border-2 border-dashed text-center transition hover:border-brand ${
+        className={`relative flex ${aspectClassName} w-full cursor-pointer flex-col items-center justify-center overflow-hidden rounded-xl border-2 border-dashed text-center transition hover:border-brand ${
           error ? "border-red-400 bg-red-50" : "border-slate-300 bg-white"
         }`}
       >

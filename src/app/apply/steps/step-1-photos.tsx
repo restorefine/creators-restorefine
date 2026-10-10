@@ -7,7 +7,7 @@ import { PhotoUpload } from "../form-ui";
 export function Step1Photos({ errors }: { errors: Record<string, string> }) {
   return (
     <div className="space-y-6">
-      <div className="grid grid-cols-1 gap-4 sm:grid-cols-3">
+      <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 sm:gap-4">
         <PhotoUpload
           name="frontFace"
           label="Front headshot"
@@ -22,7 +22,9 @@ export function Step1Photos({ errors }: { errors: Record<string, string> }) {
         />
         <PhotoUpload
           name="lifestyle"
-          label="Lifestyle / content"
+          label="Lifestyle / content (optional)"
+          className="col-span-2 sm:col-span-1"
+          aspectClassName="aspect-[2/1] sm:aspect-[4/5]"
           helpText="Shows your aesthetic"
           error={errors.lifestyle}
         />

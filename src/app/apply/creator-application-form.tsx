@@ -4,7 +4,7 @@ import { useEffect, useRef, useState } from "react";
 import { useActionState } from "react";
 import localFont from "next/font/local";
 import { submitApplication, type ApplicationFormState } from "./actions";
-import { STEP_META } from "./options";
+import { SECTION_META, STEP_META } from "./options";
 import { Step1Photos } from "./steps/step-1-photos";
 import { Step2About } from "./steps/step-2-about";
 import { Step3Social } from "./steps/step-3-social";
@@ -13,6 +13,8 @@ import { Step5Audience } from "./steps/step-5-audience";
 import { Step6Experience } from "./steps/step-6-experience";
 import { Step7Final } from "./steps/step-7-final";
 import { InfoBox } from "./form-ui";
+import { clearDraft, loadDraft, restoreDraft, saveDraft, snapshotDefaults } from "./form-draft";
+import { stepForField, validateFieldsForStep } from "./validation";
 import { ANALYTICS_EVENTS, trackEvent } from "@/lib/analytics";
 
 const holiday = localFont({
@@ -22,7 +24,7 @@ const holiday = localFont({
 
 const initialState: ApplicationFormState = { status: "idle" };
 
-const TOTAL_STEPS = 7;
+const TOTAL_STEPS = 4;
 
 function renderTitle(title: string, highlight: string) {
   const index = title.indexOf(highlight);
@@ -37,106 +39,29 @@ function renderTitle(title: string, highlight: string) {
   );
 }
 
-const FIELD_STEP: Record<string, number> = {
-  firstName: 1,
-  lastName: 1,
-  email: 1,
-  confirmEmail: 1,
-  phone: 1,
-  city: 1,
-  country: 1,
-  ageRange: 1,
-  primaryNiche: 3,
-  primaryNicheOther: 3,
-  audienceAgeGroup: 4,
-  audienceGenderSplit: 4,
-  audienceTopCountries: 4,
-  expectedHourlyRate: 5,
-  hasAgent: 5,
-  agentName: 5,
-  agentContact: 5,
-  bio: 6,
-  vatStatus: 6,
-  invoicingAs: 6,
-  termsAccepted: 7,
-  frontFace: 7,
-  sideFace: 7,
-  lifestyle: 7,
-};
+function SectionHeading({ title, description }: { title: string; description: string }) {
+  return (
+    <div className="border-t border-slate-200 pt-6 sm:pt-8">
+      <h3 className="text-base font-semibold text-slate-900 sm:text-lg">{title}</h3>
+      <p className="mt-1 text-sm text-slate-600">{description}</p>
+    </div>
+  );
+}
+
 
 function isFileSelected(value: FormDataEntryValue | null) {
   return value instanceof File && value.size > 0;
 }
 
 function validateStep(step: number, formData: FormData): Record<string, string> {
+  if (step < 4) return validateFieldsForStep(step, formData);
+
   const errors: Record<string, string> = {};
-  const get = (name: string) => (formData.get(name) as string)?.trim() ?? "";
-
-  if (step === 1) {
-    if (!get("firstName")) errors.firstName = "First name is required.";
-    if (!get("lastName")) errors.lastName = "Last name is required.";
-    const email = get("email");
-    const confirmEmail = get("confirmEmail");
-    if (!email || !/^\S+@\S+\.\S+$/.test(email)) {
-      errors.email = "Enter a valid email address.";
-    }
-    if (!confirmEmail) {
-      errors.confirmEmail = "Please confirm your email.";
-    } else if (confirmEmail !== email) {
-      errors.confirmEmail = "Emails do not match.";
-    }
-    if (!get("phone")) errors.phone = "Phone number is required.";
-    if (!get("city")) errors.city = "City is required.";
-    if (!get("country")) errors.country = "Please select a country.";
-    if (!get("ageRange")) errors.ageRange = "Please select your age range.";
+  if (!isFileSelected(formData.get("frontFace"))) errors.frontFace = "This photo is required.";
+  if (!isFileSelected(formData.get("sideFace"))) errors.sideFace = "This photo is required.";
+  if (formData.get("termsAccepted") !== "true") {
+    errors.termsAccepted = "You must accept the terms to continue.";
   }
-
-  if (step === 3) {
-    const primaryNiche = get("primaryNiche");
-    if (!primaryNiche) {
-      errors.primaryNiche = "Please select your primary niche.";
-    } else if (primaryNiche === "Other" && !get("primaryNicheOther")) {
-      errors.primaryNiche = "Please describe your niche.";
-    }
-  }
-
-  if (step === 4) {
-    if (!get("audienceAgeGroup")) errors.audienceAgeGroup = "Please select an age group.";
-    if (!get("audienceGenderSplit")) errors.audienceGenderSplit = "Please select a gender split.";
-    if (!get("audienceTopCountries")) errors.audienceTopCountries = "Please list your top countries.";
-  }
-
-  if (step === 5) {
-    const expectedHourlyRate = get("expectedHourlyRate");
-    if (!expectedHourlyRate) {
-      errors.expectedHourlyRate = "Please enter your expected hourly rate.";
-    } else if (Number.isNaN(Number(expectedHourlyRate)) || Number(expectedHourlyRate) < 0) {
-      errors.expectedHourlyRate = "Enter a valid amount.";
-    }
-
-    const hasAgent = get("hasAgent");
-    if (!hasAgent) errors.hasAgent = "Please select an option.";
-    if (hasAgent === "Yes") {
-      if (!get("agentName")) errors.agentName = "Agent name is required.";
-      if (!get("agentContact")) errors.agentContact = "Agent contact is required.";
-    }
-  }
-
-  if (step === 6) {
-    if (!get("bio")) errors.bio = "Please add a short bio.";
-    if (!get("vatStatus")) errors.vatStatus = "Please select an option.";
-    if (!get("invoicingAs")) errors.invoicingAs = "Please select an option.";
-  }
-
-  if (step === 7) {
-    if (!isFileSelected(formData.get("frontFace"))) errors.frontFace = "This photo is required.";
-    if (!isFileSelected(formData.get("sideFace"))) errors.sideFace = "This photo is required.";
-    if (!isFileSelected(formData.get("lifestyle"))) errors.lifestyle = "This photo is required.";
-    if (formData.get("termsAccepted") !== "true") {
-      errors.termsAccepted = "You must accept the terms to continue.";
-    }
-  }
-
   return errors;
 }
 
@@ -146,10 +71,14 @@ export function CreatorApplicationForm() {
   const [step, setStep] = useState(1);
   const [errors, setErrors] = useState<Record<string, string>>({});
   const [handledFieldErrors, setHandledFieldErrors] = useState(state.fieldErrors);
+  const [restored, setRestored] = useState(false);
+  const draftReady = useRef(false);
+  const formDefaults = useRef<Set<string>>(new Set());
+  const saveTimer = useRef<ReturnType<typeof setTimeout>>(undefined);
 
   if (state.fieldErrors && state.fieldErrors !== handledFieldErrors) {
     setHandledFieldErrors(state.fieldErrors);
-    const steps = Object.keys(state.fieldErrors).map((field) => FIELD_STEP[field] ?? 1);
+    const steps = Object.keys(state.fieldErrors).map((field) => stepForField(field));
     setStep(Math.min(...steps));
     setErrors(state.fieldErrors);
   }
@@ -159,8 +88,74 @@ export function CreatorApplicationForm() {
   }, []);
 
   useEffect(() => {
-    if (state.status === "success") trackEvent(ANALYTICS_EVENTS.applicationSubmitted);
+    if (state.status === "success") {
+      clearDraft();
+      trackEvent(ANALYTICS_EVENTS.applicationSubmitted);
+    }
   }, [state.status]);
+
+  // Restore saved progress once, before auto-save starts.
+  useEffect(() => {
+    if (!formRef.current) return;
+    formDefaults.current = snapshotDefaults(formRef.current);
+    const draft = loadDraft(formDefaults.current);
+    if (!draft) {
+      draftReady.current = true;
+      return;
+    }
+    restoreDraft(formRef.current, draft).then(() => {
+      setStep(Math.min(Math.max(draft.step, 1), TOTAL_STEPS));
+      setRestored(true);
+      draftReady.current = true;
+    });
+  }, []);
+
+  const scheduleSave = () => {
+    if (!draftReady.current) return;
+    clearTimeout(saveTimer.current);
+    // Wait for React to commit state-driven hidden inputs before reading.
+    saveTimer.current = setTimeout(() => {
+      if (formRef.current) saveDraft(formRef.current, step, formDefaults.current);
+    }, 400);
+  };
+
+  useEffect(() => {
+    if (draftReady.current && formRef.current) saveDraft(formRef.current, step, formDefaults.current);
+  }, [step]);
+
+  // Bring the new step into view so phone users never land mid-page.
+  const previousStep = useRef(step);
+  useEffect(() => {
+    if (previousStep.current === step) return;
+    previousStep.current = step;
+    formRef.current?.scrollIntoView({ behavior: "smooth", block: "start" });
+  }, [step]);
+
+  // Jump to the first problem instead of making people hunt for it.
+  useEffect(() => {
+    if (Object.keys(errors).length === 0) return;
+    const firstError = formRef.current?.querySelector<HTMLElement>("[data-field-error]");
+    firstError?.scrollIntoView({ behavior: "smooth", block: "center" });
+  }, [errors]);
+
+  // "Next" on the phone keyboard moves to the next field rather than doing nothing.
+  const handleKeyDown = (e: React.KeyboardEvent<HTMLFormElement>) => {
+    const target = e.target as HTMLElement;
+    if (e.key !== "Enter" || e.defaultPrevented || !(target instanceof HTMLInputElement)) return;
+    if (["checkbox", "radio", "file", "submit"].includes(target.type)) return;
+    e.preventDefault();
+    const fields = Array.from(
+      formRef.current?.querySelectorAll<HTMLElement>("input:not([type=hidden]):not([type=file]), textarea") ?? [],
+    ).filter((el) => el.offsetParent !== null && !(el as HTMLInputElement).disabled && !el.classList.contains("sr-only"));
+    const next = fields[fields.indexOf(target) + 1];
+    if (next) next.focus();
+    else target.blur();
+  };
+
+  const startOver = () => {
+    clearDraft();
+    window.location.reload();
+  };
 
   if (state.status === "success") {
     return (
@@ -210,66 +205,92 @@ export function CreatorApplicationForm() {
   };
 
   return (
-    <form ref={formRef} action={formAction} onSubmit={handleSubmit} className="space-y-8">
-      <div>
-        <div className="flex items-baseline justify-between text-sm">
-          <span className="font-medium text-slate-500">
-            Step {step} of {TOTAL_STEPS}
-          </span>
-          <span className="font-medium text-slate-500">{meta.label}</span>
-        </div>
-        <div className="mt-2 h-1.5 w-full overflow-hidden rounded-full bg-slate-100">
-          <div
-            className="h-full rounded-full bg-brand transition-all"
-            style={{ width: `${(step / TOTAL_STEPS) * 100}%` }}
-          />
-        </div>
+    <form
+      ref={formRef}
+      action={formAction}
+      onSubmit={handleSubmit}
+      onChange={scheduleSave}
+      onClick={scheduleSave}
+      onBlur={scheduleSave}
+      onKeyDown={handleKeyDown}
+      noValidate
+      className="scroll-mt-4 space-y-6 sm:space-y-8"
+    >
+      <div className="sticky top-0 z-20 -mx-4 bg-white/95 px-4 pb-3 pt-3 backdrop-blur sm:static sm:mx-0 sm:bg-transparent sm:p-0 sm:backdrop-blur-none">
+        <p className="text-sm text-slate-500 sm:hidden">
+          Step {step} of {TOTAL_STEPS} · <span className="font-medium text-slate-900">{meta.label}</span>
+        </p>
+        <ol className="mt-2 grid grid-cols-4 gap-1.5 sm:mt-0 sm:gap-3" aria-label="Application progress">
+          {STEP_META.map((item) => (
+            <li key={item.step} aria-current={item.step === step ? "step" : undefined}>
+              <div
+                className={`h-1 rounded-full transition-colors duration-300 ${
+                  item.step <= step ? "bg-brand" : "bg-slate-200"
+                }`}
+              />
+              <p
+                className={`mt-2.5 hidden text-xs font-medium sm:block ${
+                  item.step === step ? "text-slate-900" : "text-slate-400"
+                }`}
+              >
+                <span className="tabular-nums">{String(item.step).padStart(2, "0")}</span>
+                <span className="ml-2">{item.label}</span>
+              </p>
+            </li>
+          ))}
+        </ol>
       </div>
 
       <div>
-        <p className="text-xs font-semibold uppercase tracking-wide text-brand">Step {step}</p>
-        <h2 className="mt-1 text-2xl font-bold text-slate-900 sm:text-3xl">
+        <h2 className="text-2xl font-bold leading-tight text-slate-900 sm:text-3xl">
           {renderTitle(meta.title, meta.highlight)}
         </h2>
-        <p className="mt-2 text-sm text-slate-600 sm:text-base">{meta.description}</p>
+        <p className="mt-1.5 text-sm text-slate-600 sm:mt-2 sm:text-base">{meta.description}</p>
       </div>
+
+      {restored && (
+        <div className="flex items-center justify-between gap-3 rounded-xl border border-emerald-200 bg-emerald-50 px-4 py-3 text-sm text-emerald-800">
+          <span>Welcome back! We&apos;ve restored your progress. Photos need re-adding.</span>
+          <button type="button" onClick={startOver} className="shrink-0 font-semibold underline">
+            Start over
+          </button>
+        </div>
+      )}
 
       {meta.note && <InfoBox>{meta.note}</InfoBox>}
 
       {state.status === "error" && state.message && !state.fieldErrors && (
-        <div className="rounded-lg border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700">
+        <div className="rounded-xl border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700">
           {state.message}
         </div>
       )}
 
-      <div hidden={step !== 1}>
+      <div hidden={step !== 1} className="space-y-6 sm:space-y-8">
         <Step2About errors={errors} />
+        <SectionHeading {...SECTION_META.social} />
+        <Step3Social errors={errors} />
       </div>
-      <div hidden={step !== 2}>
-        <Step3Social />
-      </div>
-      <div hidden={step !== 3}>
+      <div hidden={step !== 2} className="space-y-6 sm:space-y-8">
         <Step4Content errors={errors} />
-      </div>
-      <div hidden={step !== 4}>
+        <SectionHeading {...SECTION_META.audience} />
         <Step5Audience errors={errors} />
       </div>
-      <div hidden={step !== 5}>
+      <div hidden={step !== 3} className="space-y-6 sm:space-y-8">
         <Step6Experience errors={errors} />
-      </div>
-      <div hidden={step !== 6}>
+        <SectionHeading {...SECTION_META.finalDetails} />
         <Step7Final errors={errors} />
       </div>
-      <div hidden={step !== 7}>
+      <div hidden={step !== 4}>
         <Step1Photos errors={errors} />
       </div>
 
-      <div className="flex items-center justify-between gap-3 border-t border-slate-200 pt-6">
+      {/* Pinned to the bottom of the screen on phones so Continue is always in reach */}
+      <div className="sticky bottom-0 z-20 -mx-4 flex items-center gap-3 border-t border-slate-200 bg-white/95 px-4 pb-[calc(0.75rem+env(safe-area-inset-bottom))] pt-3 backdrop-blur sm:static sm:mx-0 sm:justify-between sm:bg-transparent sm:px-0 sm:pb-0 sm:pt-6 sm:backdrop-blur-none">
         <button
           type="button"
           onClick={handleBack}
           disabled={step === 1}
-          className="inline-flex items-center gap-2 rounded-lg border border-slate-300 px-4 py-2.5 text-sm font-semibold text-slate-700 transition hover:bg-slate-50 disabled:cursor-not-allowed disabled:opacity-40"
+          className="inline-flex items-center gap-2 rounded-xl border border-slate-200 px-4 py-3 text-sm font-semibold text-slate-700 transition hover:bg-slate-50 active:scale-[0.98] disabled:cursor-not-allowed disabled:opacity-40 sm:py-2.5"
         >
           ← Back
         </button>
@@ -279,7 +300,7 @@ export function CreatorApplicationForm() {
             key="continue"
             type="button"
             onClick={handleContinue}
-            className="inline-flex items-center gap-2 rounded-lg bg-brand px-6 py-2.5 text-sm font-semibold text-white shadow-sm transition hover:bg-brand-dark"
+            className="inline-flex flex-1 items-center justify-center gap-2 rounded-xl bg-brand px-6 py-3 text-sm font-semibold text-white shadow-sm transition hover:bg-brand-dark active:scale-[0.98] sm:flex-none sm:py-2.5"
           >
             Continue →
           </button>
@@ -288,7 +309,7 @@ export function CreatorApplicationForm() {
             key="submit"
             type="submit"
             disabled={isPending}
-            className="inline-flex items-center gap-2 rounded-lg bg-brand px-6 py-2.5 text-sm font-semibold text-white shadow-sm transition hover:bg-brand-dark disabled:cursor-not-allowed disabled:opacity-60"
+            className="inline-flex flex-1 items-center justify-center gap-2 rounded-xl bg-brand px-6 py-3 text-sm font-semibold text-white shadow-sm transition hover:bg-brand-dark active:scale-[0.98] disabled:cursor-not-allowed disabled:opacity-60 sm:flex-none sm:py-2.5"
           >
             {isPending ? "Submitting..." : "Submit application"}
           </button>

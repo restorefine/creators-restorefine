@@ -1,27 +1,20 @@
 "use client";
 
 import { INVOICING_OPTIONS, VAT_OPTIONS } from "../options";
-import { FieldError, FieldLabel, SelectInput, TextAreaField, TextInput } from "../form-ui";
+import { FieldError, FieldLabel, SelectInput, TextAreaField, TextField } from "../form-ui";
 
 export function Step7Final({ errors }: { errors: Record<string, string> }) {
   return (
     <div className="space-y-6">
       <div>
-        <FieldLabel htmlFor="bio">Bio</FieldLabel>
-        <p className="mt-0.5 text-xs text-slate-500">
-          A short introduction brands will see on your profile.
-        </p>
-        <div className="mt-2">
-          <TextAreaField id="bio" name="bio" rows={4} maxLength={300} />
-        </div>
+        <TextAreaField id="bio" name="bio" label="Bio" rows={4} maxLength={300} />
         <FieldError message={errors.bio} />
+        <p className="mt-1.5 text-xs text-slate-500">A short introduction brands will see on your profile.</p>
       </div>
 
       <div>
-        <FieldLabel htmlFor="portfolioLink" optional>
-          Portfolio or media kit link
-        </FieldLabel>
-        <TextInput id="portfolioLink" name="portfolioLink" type="url" placeholder="https://" />
+        <TextField label="Portfolio or media kit link" optional id="portfolioLink" name="portfolioLink" type="url" inputMode="url" placeholder="yoursite.com/media-kit" />
+        <FieldError message={errors.portfolioLink} />
       </div>
 
       <div className="grid grid-cols-1 gap-6 sm:grid-cols-2">
@@ -38,15 +31,9 @@ export function Step7Final({ errors }: { errors: Record<string, string> }) {
       </div>
 
       <div>
-        <FieldLabel htmlFor="additionalInfo" optional>
-          Anything else to know
-        </FieldLabel>
-        <div className="mt-2">
-          <TextAreaField id="additionalInfo" name="additionalInfo" rows={3} />
-        </div>
+        <TextAreaField id="additionalInfo" name="additionalInfo" label="Anything else to know" optional rows={3} />
+        <FieldError message={errors.additionalInfo} />
       </div>
-
-
     </div>
   );
 }

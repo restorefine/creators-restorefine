@@ -1,4 +1,5 @@
 import type { Creator } from "@/generated/prisma/client";
+import { formatHourlyRate } from "@/app/apply/options";
 
 type SocialPlatformData = { na: boolean; handle: string | null; followers: number | null };
 
@@ -49,7 +50,7 @@ export const EXPORT_FIELDS: ExportField[] = [
   { key: "audienceAgeGroup", label: "Audience age group", getValue: (c) => c.audienceAgeGroup },
   { key: "audienceGenderSplit", label: "Audience gender split", getValue: (c) => c.audienceGenderSplit },
   { key: "audienceTopCountries", label: "Audience top countries", getValue: (c) => c.audienceTopCountries },
-  { key: "expectedHourlyRate", label: "Expected hourly rate (£)", getValue: (c) => (c.expectedHourlyRate != null ? String(c.expectedHourlyRate) : "") },
+  { key: "expectedHourlyRate", label: "Expected hourly rate", getValue: (c) => formatHourlyRate(c.expectedHourlyRate) ?? "" },
   { key: "hasAgent", label: "Has agent/manager", getValue: (c) => (c.hasAgent == null ? "" : c.hasAgent ? "Yes" : "No") },
   { key: "agentName", label: "Agent/manager name", getValue: (c) => c.agentName ?? "" },
   { key: "agentContact", label: "Agent/manager contact", getValue: (c) => c.agentContact ?? "" },

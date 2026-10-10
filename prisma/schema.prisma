@@ -19,7 +19,7 @@ model Creator {
   // Step 1 - Photos
   frontFacePath String
   sideFacePath  String
-  lifestylePath String
+  lifestylePath String?
 
   // Step 2 - About you
   firstName      String

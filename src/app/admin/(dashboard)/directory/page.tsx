@@ -63,7 +63,7 @@ export default async function CreatorDirectoryPage({
         </div>
       ) : (
         <>
-          <CreatorTable rows={rows} dateLabel="Approved" />
+          <CreatorTable rows={rows} dateLabel="Approved" returnTo={`/admin/directory?page=${page}`} />
           <Pagination page={page} totalPages={totalPages} basePath="/admin/directory" />
         </>
       )}

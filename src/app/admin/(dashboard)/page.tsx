@@ -137,7 +137,11 @@ export default async function AdminDashboardPage({
         </div>
       ) : (
         <>
-          <CreatorTable rows={rows} dateLabel="Submitted" />
+          <CreatorTable
+            rows={rows}
+            dateLabel="Submitted"
+            returnTo={`/admin?${new URLSearchParams({ ...paginationQuery, page: String(page) })}`}
+          />
           <Pagination page={page} totalPages={totalPages} basePath="/admin" query={paginationQuery} />
         </>
       )}
