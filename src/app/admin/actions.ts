@@ -8,6 +8,14 @@ import { createAdminClient, CREATOR_PHOTOS_BUCKET } from "@/lib/supabase/admin";
 import { CreatorStatus } from "@/generated/prisma/client";
 import { buildCsv } from "./(dashboard)/export-fields";
 
+// Server actions are public POST endpoints, so each one must verify the
+// session itself rather than relying on the /admin proxy redirect.
+async function requireAdmin() {
+  const supabase = await createClient();
+  const { data } = await supabase.auth.getUser();
+  if (!data.user) redirect("/admin/login");
+}
+
 export async function signOut() {
   const supabase = await createClient();
   await supabase.auth.signOut();
@@ -15,6 +23,7 @@ export async function signOut() {
 }
 
 export async function updateCreatorStatus(id: string, status: CreatorStatus) {
+  await requireAdmin();
   await prisma.creator.update({
     where: { id },
     data: { status },
@@ -25,6 +34,7 @@ export async function updateCreatorStatus(id: string, status: CreatorStatus) {
 }
 
 export async function rateCreator(id: string, rating: number) {
+  await requireAdmin();
   const clamped = Math.min(5, Math.max(1, Math.round(rating)));
   await prisma.creator.update({
     where: { id },
@@ -35,6 +45,7 @@ export async function rateCreator(id: string, rating: number) {
 }
 
 export async function deleteCreator(id: string) {
+  await requireAdmin();
   const creator = await prisma.creator.findUnique({
     where: { id },
     select: { frontFacePath: true, sideFacePath: true, lifestylePath: true },
@@ -56,6 +67,7 @@ export async function deleteCreator(id: string) {
 }
 
 export async function exportCreatorsCsv(scope: "all" | "approved", fields: string[]) {
+  await requireAdmin();
   const where = scope === "approved" ? { status: CreatorStatus.APPROVED } : {};
   const creators = await prisma.creator.findMany({ where, orderBy: { createdAt: "desc" } });
   return buildCsv(creators, fields);

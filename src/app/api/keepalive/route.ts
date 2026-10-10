@@ -14,7 +14,8 @@ export async function GET(request: Request) {
     }
   }
 
-  await prisma.$queryRaw`SELECT 1`;
+  // Doubles as cleanup for stale rate-limit windows.
+  await prisma.$executeRaw`DELETE FROM "rate_limits" WHERE "windowStart" < now() - interval '1 day'`;
 
   return Response.json({ ok: true });
 }

@@ -2,6 +2,7 @@
 
 import sharp from "sharp";
 import { prisma } from "@/lib/prisma";
+import { getClientIp, rateLimit } from "@/lib/rate-limit";
 import { createAdminClient, CREATOR_PHOTOS_BUCKET } from "@/lib/supabase/admin";
 import { resend, EMAIL_FROM, TALENT_EMAIL } from "@/lib/email/resend";
 import { newApplicationEmail } from "@/lib/email/new-application";
@@ -69,6 +70,13 @@ export async function submitApplication(
   _prevState: ApplicationFormState,
   formData: FormData,
 ): Promise<ApplicationFormState> {
+  if (!(await rateLimit(`apply:ip:${await getClientIp()}`, 5, 60 * 60))) {
+    return {
+      status: "error",
+      message: "Too many submissions from your network. Please try again in an hour.",
+    };
+  }
+
   const fieldErrors: Record<string, string> = {};
 
   // Step 1 - Photos
@@ -281,12 +289,11 @@ export async function submitApplication(
       },
     });
   } catch (error) {
+    // Log details server-side only; DB/storage errors can reveal infrastructure.
+    console.error("Failed to submit application", error);
     return {
       status: "error",
-      message:
-        error instanceof Error
-          ? error.message
-          : "Something went wrong submitting your application.",
+      message: "Something went wrong submitting your application. Please try again.",
     };
   }
 
