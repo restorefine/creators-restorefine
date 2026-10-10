@@ -33,8 +33,41 @@ export async function GET(request: Request) {
     return Response.json({ ok: false, error: "Invalid platform or handle" }, { status: 400 });
   }
 
-  const url = PROFILE_URLS[platform](handle);
   const started = Date.now();
+
+  if (platform === "instagram" && searchParams.get("method") === "embed") {
+    try {
+      const res = await fetch(`https://www.instagram.com/${handle}/embed/`, {
+        headers: { "User-Agent": "Mozilla/5.0" },
+        cache: "no-store",
+        signal: AbortSignal.timeout(10_000),
+      });
+      const html = await res.text();
+      const followers = html.match(/followers_count\\?":(\d+)/)?.[1] ?? null;
+
+      return Response.json({
+        ok: followers !== null,
+        platform,
+        method: "embed",
+        handle,
+        httpStatus: res.status,
+        finalUrl: res.url,
+        ms: Date.now() - started,
+        followers: followers ? Number(followers) : null,
+      });
+    } catch (error) {
+      return Response.json({
+        ok: false,
+        platform,
+        method: "embed",
+        handle,
+        ms: Date.now() - started,
+        error: error instanceof Error ? error.message : String(error),
+      });
+    }
+  }
+
+  const url = PROFILE_URLS[platform](handle);
 
   try {
     const res = await fetch(url, {
