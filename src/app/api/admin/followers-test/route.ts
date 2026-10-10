@@ -67,6 +67,41 @@ export async function GET(request: Request) {
     }
   }
 
+  if (platform === "tiktok" && searchParams.get("method") === "json") {
+    try {
+      const res = await fetch(`https://www.tiktok.com/@${handle}?lang=en`, {
+        headers: {
+          "User-Agent":
+            "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/128.0 Safari/537.36",
+        },
+        cache: "no-store",
+        signal: AbortSignal.timeout(10_000),
+      });
+      const html = await res.text();
+      const followers = html.match(/"followerCount":(\d+)/)?.[1] ?? null;
+
+      return Response.json({
+        ok: followers !== null,
+        platform,
+        method: "json",
+        handle,
+        httpStatus: res.status,
+        finalUrl: res.url,
+        ms: Date.now() - started,
+        followers: followers ? Number(followers) : null,
+      });
+    } catch (error) {
+      return Response.json({
+        ok: false,
+        platform,
+        method: "json",
+        handle,
+        ms: Date.now() - started,
+        error: error instanceof Error ? error.message : String(error),
+      });
+    }
+  }
+
   const url = PROFILE_URLS[platform](handle);
 
   try {
