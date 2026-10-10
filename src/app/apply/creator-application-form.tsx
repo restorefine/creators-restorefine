@@ -1,6 +1,6 @@
 "use client";
 
-import { useRef, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { useActionState } from "react";
 import localFont from "next/font/local";
 import { submitApplication, type ApplicationFormState } from "./actions";
@@ -13,6 +13,7 @@ import { Step5Audience } from "./steps/step-5-audience";
 import { Step6Experience } from "./steps/step-6-experience";
 import { Step7Final } from "./steps/step-7-final";
 import { InfoBox } from "./form-ui";
+import { ANALYTICS_EVENTS, trackEvent } from "@/lib/analytics";
 
 const holiday = localFont({
   src: "../../../public/fonts/Holiday.otf",
@@ -153,6 +154,14 @@ export function CreatorApplicationForm() {
     setErrors(state.fieldErrors);
   }
 
+  useEffect(() => {
+    trackEvent(ANALYTICS_EVENTS.applicationStarted);
+  }, []);
+
+  useEffect(() => {
+    if (state.status === "success") trackEvent(ANALYTICS_EVENTS.applicationSubmitted);
+  }, [state.status]);
+
   if (state.status === "success") {
     return (
       <div className="rounded-2xl border border-green-200 bg-green-50 p-8 text-center">
@@ -178,6 +187,10 @@ export function CreatorApplicationForm() {
       return;
     }
     setErrors({});
+    trackEvent(ANALYTICS_EVENTS.applicationStepCompleted, {
+      step_number: step,
+      step_name: STEP_META[step - 1].label,
+    });
     setStep((s) => Math.min(s + 1, TOTAL_STEPS));
   };
 

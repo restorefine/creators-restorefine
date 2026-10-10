@@ -3,6 +3,7 @@
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { acceptApplyChecklist } from "@/app/apply/access-actions";
+import { ANALYTICS_EVENTS, trackEvent } from "@/lib/analytics";
 
 const CHECKLIST_ITEMS = [
   "A front headshot and side profile photo",
@@ -24,7 +25,10 @@ export function ApplyChecklistDialog() {
     <>
       <button
         type="button"
-        onClick={() => setOpen(true)}
+        onClick={() => {
+          setOpen(true);
+          trackEvent(ANALYTICS_EVENTS.applyButtonClicked);
+        }}
         className="inline-flex w-full items-center justify-center rounded-lg bg-brand px-6 py-3 text-sm font-semibold text-white shadow-sm transition hover:bg-brand-dark sm:w-auto"
       >
         Apply to join the network
@@ -71,7 +75,10 @@ export function ApplyChecklistDialog() {
               >
                 I don&apos;t have these
               </button>
-              <form action={acceptApplyChecklist}>
+              <form
+                action={acceptApplyChecklist}
+                onSubmit={() => trackEvent(ANALYTICS_EVENTS.checklistAccepted)}
+              >
                 <button
                   type="submit"
                   className="inline-flex w-full items-center justify-center rounded-lg bg-brand px-6 py-3 text-sm font-semibold text-white shadow-sm transition hover:bg-brand-dark sm:w-auto"
